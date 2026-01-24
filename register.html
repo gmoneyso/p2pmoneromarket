@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Register | MoneroMarket</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    body { margin:0; background:#0b0b0b; color:#e0e0e0; font-family:system-ui,sans-serif; }
+    .container { max-width:420px; margin:80px auto; padding:30px; background:#121212; border-radius:10px; }
+    h1 { text-align:center; margin-bottom:20px; }
+    label { font-size:0.85rem; margin-bottom:6px; display:block; }
+    input { width:100%; padding:12px; margin-bottom:18px; background:#1d1d1d; border:none; border-radius:6px; color:#fff; }
+    input:focus { outline:1px solid #ff6600; }
+    button { width:100%; padding:12px; background:#ff6600; border:none; border-radius:6px; font-weight:600; cursor:pointer; }
+    .note { font-size:0.75rem; color:#888; text-align:center; margin-top:15px; }
+    .login-link { font-size:0.8rem; text-align:center; margin-top:10px; }
+    .login-link a { color:#ff6600; text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>Create Account</h1>
+    <form action="register.php" method="POST">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required minlength="5" maxlength="32" autocomplete="off">
+
+        <label for="password">Password</label>
+        <input type="password" name="password" required minlength="7" autocomplete="new-password">
+
+        <label for="confirm_password">Confirm Password</label>
+        <input type="password" name="confirm_password" required minlength="7">
+
+        <button type="submit">Register</button>
+    </form>
+
+    <div class="login-link">
+        Already have an account? <a href="login.html">Login</a>
+    </div>
+
+    <div class="note">
+        Account recovery will be configured after login.
+    </div>
+</div>
+
+<script>
+    // Random username placeholder suggestion
+    const rand = Math.random().toString(36).substring(2, 8);
+    document.getElementById("username").placeholder = "anon-" + rand;
+</script>
+</body>
+</html>

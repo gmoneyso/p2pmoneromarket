@@ -1,0 +1,6 @@
+{"time":"2026-01-19 16:43:04","ip":"127.0.0.1","msg":"Backup start","ctx":{"user_id":1}}
+{"time":"2026-01-19 16:43:04","ip":"127.0.0.1","msg":"Validate OK","ctx":[]}
+{"time":"2026-01-19 16:43:05","ip":"127.0.0.1","msg":"Passphrase created","ctx":[]}
+{"time":"2026-01-19 16:43:05","ip":"127.0.0.1","msg":"GPG failure","ctx":{"error":"Call to undefined method gnupg::genkey()"}}
+{"time":"2026-01-19 16:43:05","ip":"127.0.0.1","msg":"Backup failed","ctx":{"error":"Call to undefined method gnupg::genkey()","file":"/var/www/moneromarket/backup/steps/generate_pgp.php","line":20}}
+{"time":"2026-01-19 18:04:04","ip":"127.0.0.1","msg":"GPG export failed","ctx":[]}
