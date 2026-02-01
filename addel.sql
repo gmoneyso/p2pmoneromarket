@@ -132,7 +132,7 @@ CREATE TABLE `listings` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
   `type` enum('buy','sell') NOT NULL,
-  `crypto_pay` enum('btc','eth','ltc','bch','bnb','eos','xrp','xlm','link','dot','yfi','sol','usdt') NOT NULL,
+  `crypto_pay` enum('btc','eth','ltc','bch','xrp','xlm','link','dot','yfi','sol','usdt') NOT NULL,
   `margin_percent` decimal(6,3) NOT NULL COMMENT 'Positive = over market, Negative = under market',
   `min_xmr` decimal(20,12) NOT NULL,
   `max_xmr` decimal(20,12) NOT NULL,
@@ -145,7 +145,7 @@ CREATE TABLE `listings` (
   KEY `idx_type` (`type`),
   KEY `idx_status` (`status`),
   CONSTRAINT `fk_listing_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -155,10 +155,10 @@ CREATE TABLE `listings` (
 LOCK TABLES `listings` WRITE;
 /*!40000 ALTER TABLE `listings` DISABLE KEYS */;
 INSERT INTO `listings` VALUES
-(1,2,'sell','usdt',0.500,0.001000000000,0.002000000000,15,'usdtbinancehsuiaojxn37x8wiq82jxjd82ksjnd82idhhx8x8i2j2ud7x','active','2026-01-28 05:33:35'),
-(2,2,'buy','ltc',0.000,1.000000000000,10.000000000000,10,'ltcguyx fr4gh99r45g6yhi88hh4467jjgr45hh7jht4','active','2026-01-28 07:58:27'),
-(3,2,'buy','ltc',0.000,1.000000000000,10.000000000000,10,'ltcdf56tffttyuhbhrdse5578ikmfdsee45f6un8n8bfe35uj','active','2026-01-28 07:59:17'),
-(4,1,'buy','btc',0.300,8.000000000000,25.000000000000,10,'btcvfdtyhjikiokny67h78ihy55fgy7u88ij','active','2026-01-28 15:57:54');
+(2,2,'buy','usdt',0.500,1.000000000000,10.000000000000,10,'ltcguyx fr4gh99r45g6yhi88hh4467jjgr45hh7jht4','active','2026-01-28 07:58:27'),
+(3,2,'buy','bch',1.000,1.000000000000,10.000000000000,10,'ltcdf56tffttyuhbhrdse5578ikmfdsee45f6un8n8bfe35uj','active','2026-01-28 07:59:17'),
+(4,1,'buy','btc',0.300,8.000000000000,25.000000000000,10,'btcvfdtyhjikiokny67h78ihy55fgy7u88ij','active','2026-01-28 15:57:54'),
+(6,2,'sell','link',1.000,0.001000000000,0.002000000000,10,'linkdhshdjcjdiaiajnxjoekjdjcndjnd','active','2026-01-30 05:50:27');
 /*!40000 ALTER TABLE `listings` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -208,7 +208,7 @@ CREATE TABLE `subaddresses` (
   UNIQUE KEY `address` (`address`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `subaddresses_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -223,7 +223,11 @@ INSERT INTO `subaddresses` VALUES
 (3,1,'8AwycLJkpim6v95Lpz2BTa11oSz2Nd98MJ1hevZBk68jda82Y6SjE6YedArUnuppVqRwNYkEwso5fj5sKU12ADRyGSkVZnh',5,'2026-01-26 06:59:31'),
 (4,2,'86EzGrABuLZHXz4kE1Susz7GBhcPoHNfD5XTJHXsWxMQSMi4FccF2oodttXebjKoZ9iDsyFLcdTCTZtVBNDEX1xUGpVNeSE',6,'2026-01-26 18:45:21'),
 (5,2,'882kwQPAa2Q3hzhHSHrYNgGX4FQeLBmP9bgerbub7x7xhas8X2wLoBSVHSYtuyj83gWu6ymETf4qQdb9k9CMGJCMFudTcqY',7,'2026-01-26 18:45:32'),
-(6,3,'89eL4gfGpRF9gw9XG6R7oPNuC7KcPY5EAZ1fiRgmtQ4jG5KSMzhu8zeCZfbj7isgaMKdW7Q7kQh7rEHF4xPYzEpwHWTBMq1',8,'2026-01-27 04:09:52');
+(6,3,'89eL4gfGpRF9gw9XG6R7oPNuC7KcPY5EAZ1fiRgmtQ4jG5KSMzhu8zeCZfbj7isgaMKdW7Q7kQh7rEHF4xPYzEpwHWTBMq1',8,'2026-01-27 04:09:52'),
+(7,6,'84ZydfJdb3HNzfRgBE7wkza8rbBYtz7XPZNXgdHGHQf9G5QLae6VRTgVWmfUtpGvCC7m8dr3kVmxBKEh5BriHt9mVnJfJd7',9,'2026-01-31 08:08:51'),
+(8,6,'8A7GkvyaCPDV5A9iQWMCgGEhLLZjwae1dZpioDXDPowM5kyuWxC2QQYMRN9WWk7JVkZG9QYkpnAFpXet33Zttwb7FU6E4wJ',10,'2026-01-31 08:08:55'),
+(9,6,'84HpX3Q4zTsffGVZfq4eb7i7Q1gqx1KQ3fL9PwoyqYrqT18DqkwKbD1i6Y37rNSiwahLAKQR5xceJXQezUYpz7gh3jghxxz',11,'2026-01-31 08:08:58'),
+(10,6,'84VNmK3QhBB6TJ57FvF5nTQkGJVJhtqm3Nzin7fSKa2ujju2JYbdkAjhZaxZ9ELtyqXwid1P7V4Z9BhG1wBRcRKQNAqsLPz',12,'2026-01-31 08:09:05');
 /*!40000 ALTER TABLE `subaddresses` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -237,7 +241,7 @@ DROP TABLE IF EXISTS `trade_payments`;
 CREATE TABLE `trade_payments` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `trade_id` bigint(20) NOT NULL,
-  `crypto` enum('btc','eth','ltc','bch','bnb','eos','xrp','xlm','link','dot','yfi','sol','usdt') NOT NULL,
+  `crypto` enum('btc','eth','ltc','bch','xrp','xlm','link','dot','yfi','sol','usdt') NOT NULL,
   `txid` varchar(255) NOT NULL,
   `amount` decimal(20,12) NOT NULL,
   `confirmations` int(11) DEFAULT 0,
@@ -271,7 +275,7 @@ CREATE TABLE `trades` (
   `buyer_id` int(11) NOT NULL,
   `seller_id` int(11) NOT NULL,
   `xmr_amount` decimal(20,12) NOT NULL,
-  `crypto_pay` enum('btc','eth','ltc','bch','bnb','eos','xrp','xlm','link','dot','yfi','sol','usdt') NOT NULL,
+  `crypto_pay` enum('btc','eth','ltc','bch','xrp','xlm','link','dot','yfi','sol','usdt') NOT NULL,
   `market_price_snapshot` decimal(20,12) NOT NULL COMMENT 'Live market price at trade start',
   `margin_percent` decimal(6,3) NOT NULL,
   `final_price` decimal(20,12) NOT NULL COMMENT 'Market price after margin applied',
@@ -317,7 +321,7 @@ CREATE TABLE `users` (
   `backup_completed` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -331,7 +335,8 @@ INSERT INTO `users` VALUES
 (2,'anonwan','$argon2id$v=19$m=65536,t=4,p=1$dmo1dDliNlpBWndjblFidg$HIXtQqIVb5m+hK+UJ82Jq8OBWwNAT70MUWOWlyCZHkA','-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmDMEaXNSVxYJKwYBBAHaRw8BAQdAP2lHWTViI0d/0h09UVOqdgaYej9rdSp7Ymoo\nIgxB5w+0IWFub253YW4gPGFub253YW5AcDJwbW9uZXJvLmxvY2FsPoiTBBMWCgA7\nFiEEh1/sovWzy1mzVMLoJ7W21U6FMbwFAmlzUlcCGwMFCwkIBwICIgIGFQoJCAsC\nBBYCAwECHgcCF4AACgkQJ7W21U6FMbzD0QEAiKwtrLLP8JeIVXVRAGSU4shtit/d\nSXXJdA2fGiPFo7YBAKVXmm736FoNCyGcAWsMZkGTakmhXAqKFCA1DTJALlQNuDgE\naXNSVxIKKwYBBAGXVQEFAQEHQBo05fwVYHuY9WNKsYX6T5Ryb7dtJsl03/ds5jh+\nGchdAwEIB4h4BBgWCgAgFiEEh1/sovWzy1mzVMLoJ7W21U6FMbwFAmlzUlcCGwwA\nCgkQJ7W21U6FMbxw7AEAqVdiqBbj83ILpp8FNiaZQnG2tpjRMXUrtPFOMAOVxg8B\nAII3CLOJKpEEhvGD54aYACGCtIViJZrCFXzakwiOpsED\n=NxnJ\n-----END PGP PUBLIC KEY BLOCK-----','$2y$10$4ZGOTHQEQxR0Wql1iq81NOxtXREc3o1IMLmcgwdkdU4OI5a3B858q','2026-01-23 10:25:04',1),
 (3,'sawiti','$argon2id$v=19$m=65536,t=4,p=1$MHFURjBxQklPZ0cwek9iZA$1htnYi50g9B5SvjccxMl0GECfGF9VVRuJyjdJGEdHPI','-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmDMEaXg5bxYJKwYBBAHaRw8BAQdAh/d+fwiLJtcwI09O6qO4oz/o+qG+l0991nWH\ngWiqyta0H3Nhd2l0aSA8c2F3aXRpQHAycG1vbmVyby5sb2NhbD6IkwQTFgoAOxYh\nBARClHQjZNzRmW4NwaknTxc0fJJaBQJpeDlvAhsDBQsJCAcCAiICBhUKCQgLAgQW\nAgMBAh4HAheAAAoJEKknTxc0fJJai2gA+gPBuT31kHOWTJ6b5KkyoynxcIhLTj/y\nZOX8F7chuJcDAQD/3Wrm4AtYzLil2Bb0fS0ExXub8DNLylFR6aYKYZoSArg4BGl4\nOW8SCisGAQQBl1UBBQEBB0CAIER/zXnZSMgOmoGiFpz9T1huxF6+OCwHsfnoCsak\ndAMBCAeIeAQYFgoAIBYhBARClHQjZNzRmW4NwaknTxc0fJJaBQJpeDlvAhsMAAoJ\nEKknTxc0fJJaX+0BAKJA0f0XuEjFv3OtTnd9ieeVXPcxYMJABTF6G8cQ+w78AQDA\n57Z3rPS9lOZfPtkq8XCo7MtHmW+dnO4QLYrvIIxECw==\n=TSNP\n-----END PGP PUBLIC KEY BLOCK-----','$2y$10$gfnxuCtdgNufWLOdG557N.to9lJqeCfg/7pWLoXCtSRjuKvzKav.6','2026-01-24 21:51:47',1),
 (4,'Danie','$argon2id$v=19$m=65536,t=4,p=1$TTZUMHhjTTU4Z0dESE1JRg$hczeQMCpVjjzdwPbC5z0/7pFb7mSKVNoHRlKk4r8FWQ',NULL,NULL,'2026-01-28 19:32:30',0),
-(5,'homelander','$argon2id$v=19$m=65536,t=4,p=1$Z2hERDlERDFGUjEyTXRabA$mEdip3qjV/ZX5TSfRjdVEbVGq6igWfCI1a8pn/cPEAg','-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmDMEaXpthxYJKwYBBAHaRw8BAQdAab7jP0PEDGdU+Rsry9nU48fDcLOq8It7d7GP\noO4Yh6W0J2hvbWVsYW5kZXIgPGhvbWVsYW5kZXJAcDJwbW9uZXJvLmxvY2FsPoiT\nBBMWCgA7FiEEz/t3YWPKRWSfR3AX2JySHTqhIY0FAml6bYcCGwMFCwkIBwICIgIG\nFQoJCAsCBBYCAwECHgcCF4AACgkQ2JySHTqhIY0WrwEA+l0Puoz5oDB2+8F41NzR\nHXbuSxO4DqyBRHZdZugoLfgA/jIujwa2QouBMmNuQnGIWeTjtyuHxx5hKyZOMb/v\nXB8IuDgEaXpthxIKKwYBBAGXVQEFAQEHQMz6dEXMuFryM/7i38FEa+62QdgAIzSs\n65r7zLJUbegbAwEIB4h4BBgWCgAgFiEEz/t3YWPKRWSfR3AX2JySHTqhIY0FAml6\nbYcCGwwACgkQ2JySHTqhIY305gD+OItDi71Qgam+2SzrzJ34OHooVRtKY5cLcs8B\nVCu6eDgBAMYoIUqekcjyV4J+W5vObRW41PNozWWj3kJeHFcifKIP\n=mdwj\n-----END PGP PUBLIC KEY BLOCK-----','$2y$10$qLHOVzYhJeSnZRoH5SIeU.W6ZO5yku5SKsL2JEF1zYAkA6S/K3.nS','2026-01-28 20:10:34',1);
+(5,'homelander','$argon2id$v=19$m=65536,t=4,p=1$Z2hERDlERDFGUjEyTXRabA$mEdip3qjV/ZX5TSfRjdVEbVGq6igWfCI1a8pn/cPEAg','-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmDMEaXpthxYJKwYBBAHaRw8BAQdAab7jP0PEDGdU+Rsry9nU48fDcLOq8It7d7GP\noO4Yh6W0J2hvbWVsYW5kZXIgPGhvbWVsYW5kZXJAcDJwbW9uZXJvLmxvY2FsPoiT\nBBMWCgA7FiEEz/t3YWPKRWSfR3AX2JySHTqhIY0FAml6bYcCGwMFCwkIBwICIgIG\nFQoJCAsCBBYCAwECHgcCF4AACgkQ2JySHTqhIY0WrwEA+l0Puoz5oDB2+8F41NzR\nHXbuSxO4DqyBRHZdZugoLfgA/jIujwa2QouBMmNuQnGIWeTjtyuHxx5hKyZOMb/v\nXB8IuDgEaXpthxIKKwYBBAGXVQEFAQEHQMz6dEXMuFryM/7i38FEa+62QdgAIzSs\n65r7zLJUbegbAwEIB4h4BBgWCgAgFiEEz/t3YWPKRWSfR3AX2JySHTqhIY0FAml6\nbYcCGwwACgkQ2JySHTqhIY305gD+OItDi71Qgam+2SzrzJ34OHooVRtKY5cLcs8B\nVCu6eDgBAMYoIUqekcjyV4J+W5vObRW41PNozWWj3kJeHFcifKIP\n=mdwj\n-----END PGP PUBLIC KEY BLOCK-----','$2y$10$qLHOVzYhJeSnZRoH5SIeU.W6ZO5yku5SKsL2JEF1zYAkA6S/K3.nS','2026-01-28 20:10:34',1),
+(6,'Champez','$argon2id$v=19$m=65536,t=4,p=1$TzVhOEZmekd0QmdqWnIydQ$09xOfW3v8rk/s6jCbHvXr5UKRh28jxC8UBfz4UaG32Y','-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmDMEaX24SRYJKwYBBAHaRw8BAQdADxiGWKGKiY+3EE4l8Wf2F8yjfShe9JZKRg0Y\ngBcH1qa0IUNoYW1wZXogPENoYW1wZXpAcDJwbW9uZXJvLmxvY2FsPoiTBBMWCgA7\nFiEEysRsk+cUnWClXFTIOTmW5nm9qRkFAml9uEkCGwMFCwkIBwICIgIGFQoJCAsC\nBBYCAwECHgcCF4AACgkQOTmW5nm9qRkQBgD+P/LpmCX6nWFXOFUJV+dyMUfkqXap\nXaWmuyCDRrqQNHwBAIh+pNz/cR4lQmqjzBmkkdzHVL3/6qlNexeOdw6QumQIuDgE\naX24SRIKKwYBBAGXVQEFAQEHQMLevBRApAFZVlTD6S77caVb7jzMbzTF+E9JuhFj\nEt5RAwEIB4h4BBgWCgAgFiEEysRsk+cUnWClXFTIOTmW5nm9qRkFAml9uEkCGwwA\nCgkQOTmW5nm9qRnWWQEAvhzJri74AiHoQ8yoWuXUsGbue2kX5vme9B1jBIbz6VoA\n/10SXOd/wk++J0hz3XDTX0GKTSjLpTc7ywqOuf+HKPAC\n=Jw8m\n-----END PGP PUBLIC KEY BLOCK-----','$2y$10$AVZHl5ddMb/j5JQhF7uuDuPxpK5Kj8nI4h3MitlZ//OapbQL131sO','2026-01-31 08:06:15',1);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -375,4 +380,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-01-28 21:08:59
+-- Dump completed on 2026-02-01  5:34:43

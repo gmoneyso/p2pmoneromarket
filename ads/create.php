@@ -7,7 +7,7 @@ session_start();
 require_once __DIR__ . '/../modules/backup_guard.php';
 
 require_once __DIR__ . '/../db/database.php';
-
+require_once __DIR__ . '/../includes/csrf.php';
 ob_start();
 require_once __DIR__ . '/../modules/balance.php';
 ob_end_clean();
