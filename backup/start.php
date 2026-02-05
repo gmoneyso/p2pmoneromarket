@@ -14,7 +14,7 @@ require_login();
 $user = get_current_user_data($_SESSION['user_id'], $pdo);
 if (!$user) {
     session_destroy();
-    header('Location: /login.html');
+    header('Location: /login.php');
     exit;
 }
 

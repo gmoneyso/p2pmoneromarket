@@ -54,7 +54,7 @@
 
     <?php if ($user_can_trade): ?>
         <div class="trade-action">
-            <a href="/trade/start.php?id=<?= (int)$ad['id'] ?>" class="btn">
+            <a href="/trade/start.php?ad_id=<?= (int)$ad['id'] ?>&type=<?= $ad['type'] === 'sell' ? 'buy' : 'sell' ?>" class="btn">
                 <?= $ad['type'] === 'sell' ? 'Buy XMR' : 'Sell XMR' ?>
             </a>
         </div>
