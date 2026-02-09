@@ -4,8 +4,6 @@ function render_trade_start_view(array $ad, string $role): void
     $isBuying = $role === 'buyer';
     $action   = $isBuying ? 'Buy' : 'Sell';
 ?>
-<link rel="stylesheet" href="/trade/trade.css">
-
 <div class="trade-box">
 
 <h2>
@@ -36,7 +34,7 @@ function render_trade_start_view(array $ad, string $role): void
     <p>Platform fee (1%):
         <span id="fee_xmr">–</span> XMR
     </p>
-    <p>You receive:
+    <p><?= $isBuying ? "You will receive" : "They will receive" ?>:
         <span id="net_xmr">–</span> XMR
     </p>
     <p>USDT value:
@@ -50,11 +48,11 @@ function render_trade_start_view(array $ad, string $role): void
     <button type="button" onclick="openStartTradeModal()">
         Start Trade
     </button>
+    <input type="hidden" id="trade_action" value="<?= $action ?>">
 </form>
 
 </div>
 
-<!-- CONFIRM MODAL (delete-modal style) -->
 <div id="startTradeModal" class="modal hidden">
     <div class="card modal-card">
         <h3 id="startTradeTitle">Confirm Trade</h3>

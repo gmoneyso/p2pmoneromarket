@@ -1,46 +1,94 @@
-/* ===============================
-   MoneroMarket Global UI (LOCKED)
-   =============================== */
+/* Trade pages aligned with global style */
 
-:root {
-    --bg-main: #0b0b0b;
-    --bg-card: #121212;
-    --bg-input: #1d1d1d;
-    --bg-hover: #222;
-    --border-soft: #2a2a2a;
-
-    --text-main: #e0e0e0;
-    --text-muted: #888;
-    --text-dim: #777;
-
-    --accent: #ff6600;
-    --accent-soft: #ff8533;
-
-    --radius-sm: 6px;
-    --radius-md: 10px;
-
-    --font-main: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-mono: monospace;
+.trade-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    max-width: 900px;
+    margin: 16px auto;
 }
-/* ===============================
-   Trade Start / Trade Flow UI
-   =============================== */
+
+
+.usertrades-header {
+    max-width: 900px;
+    margin: 16px auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.usertrades-header .tab-btn {
+    width: 100%;
+}
+
+
+.tab-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--bg-input);
+    border: none;
+    color: var(--text-main);
+    cursor: pointer;
+}
+
+.tab-btn.active {
+    background: var(--accent);
+    color: #000;
+    font-weight: 600;
+}
+
+.trade-list-wrap,
+.trade-detail-wrap {
+    max-width: 900px;
+    margin: 0 auto 24px;
+}
+
+.trade-shell {
+    background: #0f0f0f;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    padding: 18px;
+}
+
+.trade-shell-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.trade-link {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.86rem;
+}
+
+.trade-link:hover {
+    text-decoration: underline;
+}
+
+.trade-complete-banner {
+    background: #13311e;
+    border: 1px solid #1f6e3c;
+    color: #9ef0ba;
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
 
 .trade-box {
     background: var(--bg-card);
-    padding: 22px;
+    border: 1px solid var(--border-soft);
+    padding: 16px;
     border-radius: var(--radius-md);
 }
 
-/* ===============================
-   Inputs
-   =============================== */
-
-.trade-box label {
-    display: block;
-    margin-top: 14px;
-    font-size: 0.75rem;
+.trade-limits {
+    font-size: 0.78rem;
     color: var(--text-muted);
+    margin: -2px 0 10px;
 }
 
 .trade-box input {
@@ -57,28 +105,18 @@
     outline: 1px solid var(--accent);
 }
 
-/* ===============================
-   Limits / Meta
-   =============================== */
-
-.trade-limits {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    margin-bottom: 10px;
-}
-
-/* ===============================
-   Price Preview
-   =============================== */
-
 .trade-preview {
-    margin-top: 18px;
-    font-size: 0.8rem;
-    color: var(--text-dim);
+    margin-top: 12px;
+    border: 1px solid var(--border-soft);
+    background: #101010;
+    border-radius: var(--radius-sm);
+    padding: 12px;
 }
 
 .trade-preview p {
     margin: 6px 0;
+    color: var(--text-muted);
+    font-size: 0.84rem;
 }
 
 .trade-preview span {
@@ -86,149 +124,210 @@
     font-weight: 600;
 }
 
-/* ===============================
-   Trade Actions (Buttons)
-   =============================== */
-
-.trade-action {
-    margin-top: 18px;
-    display: flex;
-    gap: 10px;
-}
-
-.trade-action .btn {
-    flex: 1;
-}
-
-/* ===============================
-   Modal (Trade Confirm / Release)
-   =============================== */
-
-.trade-modal-card {
-    background: var(--bg-card);
-    padding: 22px;
-    border-radius: var(--radius-md);
-    max-width: 360px;
-    width: 100%;
-    box-shadow: 0 0 0 1px var(--border-soft);
-}
-
-.trade-modal-card h3 {
+.trade-timer-box {
     margin-bottom: 12px;
-    font-size: 1rem;
+    padding: 10px 12px;
+    border: 1px solid #3a2f14;
+    border-left: 4px solid #ffbd69;
+    border-radius: var(--radius-sm);
+    background: #17130a;
 }
 
-.trade-modal-card p {
-    font-size: 0.8rem;
+.trade-timer-box p {
+    margin: 0;
+    color: #f6d59a;
+    font-size: 0.9rem;
+}
+
+.trade-timer-box small {
     color: var(--text-muted);
-    line-height: 1.4;
-    margin-bottom: 18px;
+    font-size: 0.75rem;
 }
 
-/* ===============================
-   Modal Buttons
-   =============================== */
-
-.modal-actions {
+.trade-summary-row {
     display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+}
+
+.trade-panel {
+    border: 1px solid var(--border-soft);
+    background: #111;
+    border-radius: var(--radius-sm);
+    padding: 14px;
+}
+
+.trade-note {
+    background: #111;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    color: var(--text-muted);
+}
+
+.trade-terms {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-soft);
+    background: #0d0d0d;
+    color: var(--text-main);
+    white-space: pre-wrap;
+}
+
+.trade-actions-row {
+    margin-top: 12px;
+    display: grid;
     gap: 10px;
-    justify-content: flex-end;
 }
 
-.btn.danger {
-    background: #ff5252;
-    color: #000;
+.trade-action-form {
+    margin: 0;
 }
 
-.btn.danger:hover {
-    background: #ff7070;
+
+.trade-action-form label {
+    display: block;
+    margin: 8px 0 4px;
+    color: var(--text-muted);
 }
 
-/* ===============================
-   Responsive
-   =============================== */
-
-@media (max-width: 480px) {
-    .trade-box {
-        padding: 18px;
-    }
-
-    .trade-action {
-        flex-direction: column;
-    }
+.trade-action-form input[type="text"] {
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 10px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-soft);
+    color: var(--text-main);
+    border-radius: var(--radius-sm);
 }
+
+
+.trade-section {
+    margin-top: 18px;
+}
+
+.trade-empty {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.trade-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm);
+    background: #111;
+    margin-bottom: 8px;
+    text-decoration: none;
+    color: var(--text-main);
+}
+
+.trade-row:hover {
+    background: #151515;
+}
+
+.trade-row p {
+    margin: 4px 0;
+    font-size: 0.84rem;
+    color: var(--text-muted);
+}
+
+.trade-row small {
+    color: var(--text-dim);
+    font-size: 0.74rem;
+}
+
+.trade-row-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    font-size: 0.8rem;
+}
+
+.trade-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.trade-status-pending_payment {
+    background: #2b210f;
+    color: #ffbd69;
+}
+
+.trade-status-paid {
+    background: #0f2432;
+    color: #7dd3fc;
+}
+
+.trade-status-released {
+    background: #0f2d19;
+    color: #86efac;
+}
+
+.trade-status-cancelled,
+.trade-status-expired {
+    background: #2d1616;
+    color: #fca5a5;
+}
+
+.trade-status-disputed {
+    background: #2d2411;
+    color: #fcd34d;
+}
+
 .modal {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,.6);
+    background: rgba(0, 0, 0, 0.6);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 999;
 }
+
 .modal.hidden {
     display: none;
 }
+
 .modal-card {
-    background: #111;
-    padding: 20px;
-    border-radius: 8px;
-    max-width: 360px;
-    width: 90%;
+    width: min(420px, 92%);
 }
+
 .modal-actions {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
 }
 
-/* ===============================
-   Containers / Cards
-   =============================== */
-
-.container {
-    width: min(100%, 1200px);
-    margin: 80px auto;
-    padding: 30px;
-    background: var(--bg-card);
-    border-radius: var(--radius-md);
+.btn.danger {
+    background: #ff5252;
 }
 
-.card {
-    background: var(--bg-card);
-    border-radius: var(--radius-md);
-    padding: 18px;
-    margin-bottom: 16px;
+.btn.danger:hover {
+    background: #ff6e6e;
 }
 
-/* ===============================
-   Buttons
-   =============================== */
+@media (max-width: 680px) {
+    .trade-shell-head,
+    .trade-summary-row,
+    .trade-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 
-button,
-.btn {
-    width: 100%;
-    padding: 12px;
-    background: var(--accent);
-    border: none;
-    border-radius: var(--radius-sm);
-    font-weight: 600;
-    color: #000;
-    cursor: pointer;
-}
-
-button:hover,
-.btn:hover {
-    background: var(--accent-soft);
-}
-
-/* ===============================
-   Responsive Containers
-   =============================== */
-
-@media (max-width: 480px) {
-    .container {
-        margin: 40px 12px;
-        padding: 22px;
+    .trade-row-right {
+        align-items: flex-start;
     }
 }

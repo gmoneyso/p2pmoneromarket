@@ -8,9 +8,8 @@ require_login();
 require_once __DIR__ . '/start_ad.php';
 
 $ad_id = (int)($_GET['ad_id'] ?? 0);
-$type  = $_GET['type'] ?? '';
 
-if (!$ad_id || !in_array($type, ['buy', 'sell'], true)) {
+if (!$ad_id) {
     http_response_code(400);
     exit('Invalid trade request');
 }
@@ -26,7 +25,35 @@ if ((int)$ad['user_id'] === (int)$_SESSION['user_id']) {
     exit('You cannot trade with your own ad');
 }
 
-$role = $type === 'buy' ? 'buyer' : 'seller';
+$role = $ad['type'] === 'sell' ? 'buyer' : 'seller';
 
 require_once __DIR__ . '/start_view.php';
-render_trade_start_view($ad, $role);
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Start Trade | MoneroMarket</title>
+<link rel="stylesheet" href="/assets/global.css">
+<link rel="stylesheet" href="/assets/dashboard.css">
+<link rel="stylesheet" href="/trade/trade.css">
+</head>
+<body>
+<?php include __DIR__ . '/../partials/header.php'; ?>
+<?php include __DIR__ . '/../partials/sidebar.php'; ?>
+
+<main class="dashboard trade-page-main">
+    <section class="card trade-shell">
+        <div class="trade-shell-head">
+            <h1>Start Trade</h1>
+            <a class="trade-link" href="/trade/list.php">My Trades</a>
+        </div>
+
+        <?php render_trade_start_view($ad, $role); ?>
+    </section>
+</main>
+
+<?php include __DIR__ . '/../partials/footer.php'; ?>
+</body>
+</html>

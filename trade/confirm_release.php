@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../db/database.php';
+require_once __DIR__ . '/helpers.php';
 require_login();
 
 $userId  = (int)$_SESSION['user_id'];
@@ -16,102 +17,73 @@ if (!$tradeId) {
 $pdo->beginTransaction();
 
 try {
-    /* Lock trade */
-    $stmt = $pdo->prepare("
-        SELECT *
-        FROM trades
-        WHERE id = ?
-        FOR UPDATE
-    ");
-    $stmt->execute([$tradeId]);
-    $trade = $stmt->fetch(PDO::FETCH_ASSOC);
+    $trade = trade_load_by_id($pdo, $tradeId, true);
 
     if (!$trade) {
-        throw new Exception('Trade not found');
+        throw new RuntimeException('Trade not found');
     }
 
-    if ((int)$trade['seller_id'] !== $userId) {
-        throw new Exception('Not seller');
+    $role = trade_role_for_user($trade, $userId);
+    if ($role !== 'seller') {
+        throw new RuntimeException('Not seller');
     }
 
-    if ($trade['status'] !== 'paid') {
-        throw new Exception('Trade not releasable');
+    if ($trade['status'] !== TRADE_STATUS_PAID) {
+        throw new RuntimeException('Trade not releasable');
     }
 
     $xmrAmount = (float)$trade['xmr_amount'];
     $feeXmr    = (float)$trade['fee_xmr'];
     $buyerId   = (int)$trade['buyer_id'];
     $sellerId  = (int)$trade['seller_id'];
+    $platformFeeUserId = trade_platform_fee_user_id($pdo);
 
-    /* Get seller balance */
-    $stmt = $pdo->prepare("
-        SELECT balance_after
-        FROM balance_ledger
-        WHERE user_id = ?
-        ORDER BY id DESC
-        LIMIT 1
-    ");
-    $stmt->execute([$sellerId]);
-    $sellerBalance = (float)$stmt->fetchColumn();
-
-    /* Seller escrow release (debit) */
-    $stmt = $pdo->prepare("
-        INSERT INTO balance_ledger
-            (user_id, related_type, related_id, amount, direction, status, balance_after)
-        VALUES (?, 'escrow_release', ?, ?, 'debit', 'unlocked', ?)
-    ");
-    $stmt->execute([
+    ledger_append(
+        $pdo,
         $sellerId,
+        'escrow_release',
         $tradeId,
         $xmrAmount,
-        $sellerBalance - $xmrAmount
-    ]);
+        'debit',
+        'unlocked'
+    );
 
-    /* Buyer balance */
-    $stmt->execute([$buyerId]); // reset cursor safety
-    $stmt = $pdo->prepare("
-        SELECT balance_after
-        FROM balance_ledger
-        WHERE user_id = ?
-        ORDER BY id DESC
-        LIMIT 1
-    ");
-    $stmt->execute([$buyerId]);
-    $buyerBalance = (float)$stmt->fetchColumn();
-
-    /* Buyer escrow credit */
-    $stmt = $pdo->prepare("
-        INSERT INTO balance_ledger
-            (user_id, related_type, related_id, amount, direction, status, balance_after)
-        VALUES (?, 'escrow_release', ?, ?, 'credit', 'unlocked', ?)
-    ");
-    $stmt->execute([
+    ledger_append(
+        $pdo,
         $buyerId,
+        'escrow_release',
         $tradeId,
         $xmrAmount,
-        $buyerBalance + $xmrAmount
-    ]);
+        'credit',
+        'unlocked'
+    );
 
-    /* Buyer fee debit */
-    $stmt = $pdo->prepare("
-        INSERT INTO balance_ledger
-            (user_id, related_type, related_id, amount, direction, status, balance_after)
-        VALUES (?, 'fee', ?, ?, 'debit', 'unlocked', ?)
-    ");
-    $stmt->execute([
+    ledger_append(
+        $pdo,
         $buyerId,
+        'fee',
         $tradeId,
         $feeXmr,
-        ($buyerBalance + $xmrAmount) - $feeXmr
-    ]);
+        'debit',
+        'unlocked'
+    );
 
-    /* Update trade */
-    $stmt = $pdo->prepare("
-        UPDATE trades
-        SET status = 'released'
-        WHERE id = ?
-    ");
-    $stmt->execute([$tradeId]);
+    ledger_append(
+        $pdo,
+        $platformFeeUserId,
+        'fee',
+        $tradeId,
+        $feeXmr,
+        'credit',
+        'unlocked'
+    );
+
+    trade_set_status(
+        $pdo,
+        $tradeId,
+        TRADE_STATUS_PAID,
+        TRADE_STATUS_RELEASED
+    );
 
     $pdo->commit();
 
@@ -119,7 +91,9 @@ try {
     exit;
 
 } catch (Throwable $e) {
-    $pdo->rollBack();
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
     http_response_code(400);
     exit($e->getMessage());
 }

@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../db/database.php';
-require_once __DIR__ . '/../includes/price_oracle.php';
+require_once __DIR__ . '/helpers.php';
 
 require_login();
 
@@ -20,13 +20,7 @@ if ($listingId <= 0 || $xmrAmount <= 0) {
 $pdo->beginTransaction();
 
 try {
-    /* Load listing */
-    $stmt = $pdo->prepare("
-        SELECT *
-        FROM listings
-        WHERE id = ? AND status = 'active'
-        FOR UPDATE
-    ");
+    $stmt = $pdo->prepare("\n        SELECT *\n        FROM listings\n        WHERE id = ? AND status = 'active'\n        FOR UPDATE\n    ");
     $stmt->execute([$listingId]);
     $listing = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -34,7 +28,6 @@ try {
         throw new RuntimeException('Listing unavailable');
     }
 
-    /* Resolve roles */
     if ($listing['type'] === 'sell') {
         $sellerId = (int)$listing['user_id'];
         $buyerId  = $userId;
@@ -47,12 +40,10 @@ try {
         throw new RuntimeException('Self-trading not allowed');
     }
 
-    /* Validate limits */
     if ($xmrAmount < (float)$listing['min_xmr'] || $xmrAmount > (float)$listing['max_xmr']) {
         throw new RuntimeException('Amount outside ad limits');
     }
 
-    /* Get oracle price */
     $prices = require __DIR__ . '/../includes/price_oracle.php';
     $coin   = strtolower($listing['crypto_pay']);
 
@@ -67,18 +58,7 @@ try {
     $cryptoAmt = round($finalPrice * $xmrAmount, 12);
     $feeXmr    = round($xmrAmount * 0.01, 12);
 
-    /* Seller available balance (excluding escrow locks) */
-    $stmt = $pdo->prepare("
-        SELECT COALESCE(SUM(
-            CASE direction
-                WHEN 'credit' THEN amount
-                WHEN 'debit'  THEN -amount
-            END
-        ), 0)
-        FROM balance_ledger
-        WHERE user_id = ?
-          AND related_type != 'escrow_lock'
-    ");
+    $stmt = $pdo->prepare("\n        SELECT COALESCE(SUM(\n            CASE direction\n                WHEN 'credit' THEN amount\n                WHEN 'debit'  THEN -amount\n            END\n        ), 0)\n        FROM balance_ledger\n        WHERE user_id = ?\n          AND related_type != 'escrow_lock'\n    ");
     $stmt->execute([$sellerId]);
     $available = (float)$stmt->fetchColumn();
 
@@ -86,25 +66,7 @@ try {
         throw new RuntimeException('Insufficient balance for escrow');
     }
 
-    /* Create trade */
-    $stmt = $pdo->prepare("
-        INSERT INTO trades (
-            listing_id,
-            buyer_id,
-            seller_id,
-            xmr_amount,
-            crypto_pay,
-            market_price_snapshot,
-            margin_percent,
-            final_price,
-            crypto_amount,
-            fee_xmr,
-            expires_at
-        ) VALUES (
-            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
-            DATE_ADD(NOW(), INTERVAL ? MINUTE)
-        )
-    ");
+    $stmt = $pdo->prepare("\n        INSERT INTO trades (\n            listing_id,\n            buyer_id,\n            seller_id,\n            xmr_amount,\n            crypto_pay,\n            market_price_snapshot,\n            margin_percent,\n            final_price,\n            crypto_amount,\n            fee_xmr,\n            status,\n            expires_at\n        ) VALUES (\n            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,\n            DATE_ADD(NOW(), INTERVAL ? MINUTE)\n        )\n    ");
     $stmt->execute([
         $listingId,
         $buyerId,
@@ -116,33 +78,21 @@ try {
         $finalPrice,
         $cryptoAmt,
         $feeXmr,
-        $listing['payment_time_limit']
+        TRADE_STATUS_PENDING_PAYMENT,
+        (int)$listing['payment_time_limit'],
     ]);
 
     $tradeId = (int)$pdo->lastInsertId();
 
-    /* Lock escrow */
-    $newBalance = $available - $xmrAmount;
-
-    $stmt = $pdo->prepare("
-        INSERT INTO balance_ledger (
-            user_id,
-            related_type,
-            related_id,
-            amount,
-            direction,
-            status,
-            balance_after
-        ) VALUES (
-            ?, 'escrow_lock', ?, ?, 'debit', 'locked', ?
-        )
-    ");
-    $stmt->execute([
+    ledger_append(
+        $pdo,
         $sellerId,
+        'escrow_lock',
         $tradeId,
         $xmrAmount,
-        $newBalance
-    ]);
+        'debit',
+        'locked'
+    );
 
     $pdo->commit();
 
@@ -150,7 +100,9 @@ try {
     exit;
 
 } catch (Throwable $e) {
-    $pdo->rollBack();
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
     http_response_code(400);
     echo $e->getMessage();
 }

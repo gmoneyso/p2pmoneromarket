@@ -3,48 +3,75 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../db/database.php';
+require_once __DIR__ . '/helpers.php';
 require_login();
 
 $userId  = (int)$_SESSION['user_id'];
 $tradeId = (int)($_POST['trade_id'] ?? 0);
+$txid    = trim((string)($_POST['txid'] ?? ''));
 
 if (!$tradeId) {
     http_response_code(400);
     exit('Invalid trade');
 }
 
+if ($txid === '' || !preg_match('/^[A-Za-z0-9]{16,128}$/', $txid)) {
+    http_response_code(400);
+    exit('Invalid txid format');
+}
+
+trade_expire_if_due($pdo, $tradeId);
+
 $pdo->beginTransaction();
 
 try {
-    /* Lock trade */
-    $stmt = $pdo->prepare("
-        SELECT *
-        FROM trades
-        WHERE id = ?
-        FOR UPDATE
-    ");
-    $stmt->execute([$tradeId]);
-    $trade = $stmt->fetch(PDO::FETCH_ASSOC);
+    $trade = trade_load_by_id($pdo, $tradeId, true);
 
     if (!$trade) {
-        throw new Exception('Trade not found');
+        throw new RuntimeException('Trade not found');
     }
 
-    if ((int)$trade['buyer_id'] !== $userId) {
-        throw new Exception('Not buyer');
+    $role = trade_role_for_user($trade, $userId);
+    if ($role !== 'buyer') {
+        throw new RuntimeException('Not buyer');
     }
 
-    if ($trade['status'] !== 'pending_payment') {
-        throw new Exception('Trade not payable');
+    if ($trade['status'] !== TRADE_STATUS_PENDING_PAYMENT) {
+        if ($trade['status'] === TRADE_STATUS_EXPIRED) {
+            throw new RuntimeException('Trade expired');
+        }
+        throw new RuntimeException('Trade not payable');
     }
 
-    /* Update trade status */
-    $stmt = $pdo->prepare("
-        UPDATE trades
-        SET status = 'paid'
-        WHERE id = ?
-    ");
-    $stmt->execute([$tradeId]);
+    if (strtotime((string)$trade['expires_at']) <= time()) {
+        trade_set_status(
+            $pdo,
+            $tradeId,
+            TRADE_STATUS_PENDING_PAYMENT,
+            TRADE_STATUS_EXPIRED
+        );
+        trade_refund_seller_escrow($pdo, $trade);
+        throw new RuntimeException('Trade expired');
+    }
+
+    if (trade_latest_payment($pdo, $tradeId) !== null) {
+        throw new RuntimeException('Payment proof already submitted');
+    }
+
+    $stmt = $pdo->prepare("\n        INSERT INTO trade_payments (trade_id, crypto, txid, amount, confirmations)\n        VALUES (?, ?, ?, ?, 0)\n    ");
+    $stmt->execute([
+        $tradeId,
+        strtolower((string)$trade['crypto_pay']),
+        $txid,
+        (float)$trade['crypto_amount'],
+    ]);
+
+    trade_set_status(
+        $pdo,
+        $tradeId,
+        TRADE_STATUS_PENDING_PAYMENT,
+        TRADE_STATUS_PAID
+    );
 
     $pdo->commit();
 
@@ -52,7 +79,9 @@ try {
     exit;
 
 } catch (Throwable $e) {
-    $pdo->rollBack();
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
     http_response_code(400);
     exit($e->getMessage());
 }

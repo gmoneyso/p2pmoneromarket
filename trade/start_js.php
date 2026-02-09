@@ -5,6 +5,7 @@ const cryptoEl = document.getElementById('crypto_amount');
 const feeEl    = document.getElementById('fee_xmr');
 const netEl    = document.getElementById('net_xmr');
 const usdtEl   = document.getElementById('usdt_value');
+const actionEl = document.getElementById('trade_action');
 
 let controller = null;
 
@@ -50,8 +51,9 @@ function openStartTradeModal() {
         return;
     }
 
+    const verb = (actionEl?.value || 'Start');
     document.getElementById('startTradeText').textContent =
-        'Buy Monero from <?= htmlspecialchars($ad['username']) ?> at your locked rate.';
+        verb + ' Monero with <?= htmlspecialchars($ad['username']) ?> at your locked rate.';
 
     document.getElementById('startTradeModal').classList.remove('hidden');
 }

@@ -17,6 +17,11 @@ $is_logged_in = isset($_SESSION['user_id']);
                 <span class="text">Dashboard</span>
             </a>
 
+            <a href="/trade/list.php" class="nav-item" title="Trades">
+                <span class="icon">↔</span>
+                <span class="text">Trades</span>
+            </a>
+
             <a href="/userads.php" class="nav-item" title="My Ads">
                 <span class="icon">≡</span>
                 <span class="text">My Ads</span>
