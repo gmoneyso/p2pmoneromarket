@@ -28,7 +28,7 @@ try {
         throw new RuntimeException('Not seller');
     }
 
-    if ($trade['status'] !== TRADE_STATUS_PAID_UNCONFIRMED) {
+    if ($trade['status'] !== TRADE_STATUS_PAID) {
         throw new RuntimeException('Trade not releasable');
     }
 
@@ -81,7 +81,7 @@ try {
     trade_set_status(
         $pdo,
         $tradeId,
-        TRADE_STATUS_PAID_UNCONFIRMED,
+        TRADE_STATUS_PAID,
         TRADE_STATUS_RELEASED
     );
 

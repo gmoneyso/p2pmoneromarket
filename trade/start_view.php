@@ -45,8 +45,23 @@ function render_trade_start_view(array $ad, string $role): void
 <form method="post" action="/trade/start_submit.php" id="tradeForm">
     <input type="hidden" name="listing_id" value="<?= (int)$ad['id'] ?>">
     <input type="hidden" name="xmr_amount" id="xmr_hidden">
+
+    <?php if (!$isBuying): ?>
+        <label>
+            Your <?= strtoupper((string)$ad['crypto_pay']) ?> payment address
+            <input
+                type="text"
+                id="payin_address_trade"
+                name="payin_address_trade"
+                maxlength="255"
+                placeholder="Enter your <?= strtoupper((string)$ad['crypto_pay']) ?> receive address"
+                required
+            >
+        </label>
+    <?php endif; ?>
+
     <button type="button" onclick="openStartTradeModal()">
-        Start Trade
+        <?= $action ?> XMR
     </button>
     <input type="hidden" id="trade_action" value="<?= $action ?>">
 </form>

@@ -76,7 +76,7 @@ try {
         $pdo,
         $tradeId,
         TRADE_STATUS_PENDING_PAYMENT,
-        TRADE_STATUS_PAID_UNCONFIRMED
+        TRADE_STATUS_PAID
     );
 
     $pdo->commit();

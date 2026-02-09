@@ -14,16 +14,26 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!marginInput || !coinSelect) return;
 
         let marketPrice = null;
+        let priceReqSeq = 0;
+        let priceCtrl = null;
 
         /* ==========================
            PRICE PREVIEW
         ========================== */
         async function fetchMarketPrice() {
             const coin = coinSelect.value;
+            const reqId = ++priceReqSeq;
+
+            if (priceCtrl) priceCtrl.abort();
+            priceCtrl = new AbortController();
 
             try {
-                const res = await fetch(`/api/price.php?coin=${coin}`);
+                const res = await fetch(`/api/price.php?coin=${encodeURIComponent(coin)}`, {
+                    signal: priceCtrl.signal
+                });
                 const data = await res.json();
+
+                if (reqId !== priceReqSeq) return;
 
                 marketPrice = Number(data.price);
                 if (!Number.isFinite(marketPrice)) throw new Error();
@@ -34,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 updatePreview();
 
             } catch {
+                if (reqId !== priceReqSeq) return;
                 marketEl.textContent = '–';
                 yourEl.textContent = '–';
                 feeEl.textContent = '–';

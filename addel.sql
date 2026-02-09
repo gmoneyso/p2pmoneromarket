@@ -291,7 +291,7 @@ CREATE TABLE `trades` (
   `final_price` decimal(20,12) NOT NULL COMMENT 'Market price after margin applied',
   `crypto_amount` decimal(20,12) NOT NULL COMMENT 'Amount buyer must pay',
   `fee_xmr` decimal(20,12) NOT NULL COMMENT '1% XMR fee paid by buyer',
-  `status` enum('pending_payment','paid_unconfirmed','released','cancelled','expired','disputed') NOT NULL DEFAULT 'pending_payment',
+  `status` enum('pending_payment','paid','released','cancelled','expired','disputed') NOT NULL DEFAULT 'pending_payment',
   `expires_at` timestamp NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),

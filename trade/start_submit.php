@@ -11,6 +11,7 @@ $userId = (int)$_SESSION['user_id'];
 
 $listingId = (int)($_POST['listing_id'] ?? 0);
 $xmrAmount = (float)($_POST['xmr_amount'] ?? 0);
+$payinAddressTrade = trim((string)($_POST['payin_address_trade'] ?? ''));
 
 if ($listingId <= 0 || $xmrAmount <= 0) {
     http_response_code(400);
@@ -40,8 +41,23 @@ try {
         throw new RuntimeException('Self-trading not allowed');
     }
 
+    $sellerProvidesAddressAtStart = (int)$sellerId === $userId;
+
+    if ($sellerProvidesAddressAtStart) {
+        if ($payinAddressTrade === '') {
+            throw new RuntimeException('Payment address is required to sell XMR in this trade');
+        }
+        if (strlen($payinAddressTrade) > 255) {
+            throw new RuntimeException('Payment address too long');
+        }
+    }
+
     if ($xmrAmount < (float)$listing['min_xmr'] || $xmrAmount > (float)$listing['max_xmr']) {
         throw new RuntimeException('Amount outside ad limits');
+    }
+
+    if (trim((string)($listing['payin_address'] ?? '')) === '' && !$sellerProvidesAddressAtStart) {
+        throw new RuntimeException('Listing is missing payment address for this trade');
     }
 
     $prices = require __DIR__ . '/../includes/price_oracle.php';
@@ -94,7 +110,7 @@ try {
         $sellerId,
         $xmrAmount,
         $listing['crypto_pay'],
-        $listing['payin_address'] ?? null,
+        $sellerProvidesAddressAtStart ? $payinAddressTrade : ($listing['payin_address'] ?? null),
         $listing['payin_network'] ?? null,
         $listing['payin_tag_memo'] ?? null,
         $marketPrice,

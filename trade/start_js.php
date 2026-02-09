@@ -6,6 +6,7 @@ const feeEl    = document.getElementById('fee_xmr');
 const netEl    = document.getElementById('net_xmr');
 const usdtEl   = document.getElementById('usdt_value');
 const actionEl = document.getElementById('trade_action');
+const payinAddressInput = document.getElementById('payin_address_trade');
 
 let controller = null;
 
@@ -49,6 +50,15 @@ function openStartTradeModal() {
     if (!hidden.value) {
         alert('Enter a valid XMR amount');
         return;
+    }
+
+    if (payinAddressInput) {
+        const v = (payinAddressInput.value || '').trim();
+        if (!v) {
+            alert('Enter your payment address to sell XMR in this trade');
+            payinAddressInput.focus();
+            return;
+        }
     }
 
     const verb = (actionEl?.value || 'Start');

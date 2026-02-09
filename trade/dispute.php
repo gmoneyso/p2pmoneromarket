@@ -28,14 +28,14 @@ try {
         throw new RuntimeException('Not your trade');
     }
 
-    if ($trade['status'] !== TRADE_STATUS_PAID_UNCONFIRMED) {
-        throw new RuntimeException('Only paid-unconfirmed trades can be disputed');
+    if ($trade['status'] !== TRADE_STATUS_PAID) {
+        throw new RuntimeException('Only paid trades can be disputed');
     }
 
     trade_set_status(
         $pdo,
         $tradeId,
-        TRADE_STATUS_PAID_UNCONFIRMED,
+        TRADE_STATUS_PAID,
         TRADE_STATUS_DISPUTED
     );
 

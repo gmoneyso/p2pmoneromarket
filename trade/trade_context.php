@@ -34,9 +34,9 @@ $counterparty = $role === 'buyer'
 
 $status = (string)$trade['status'];
 $canPay = $role === 'buyer' && $status === TRADE_STATUS_PENDING_PAYMENT;
-$canConfirm = $role === 'seller' && $status === TRADE_STATUS_PAID_UNCONFIRMED;
+$canConfirm = $role === 'seller' && $status === TRADE_STATUS_PAID;
 $canCancel = in_array($status, [TRADE_STATUS_PENDING_PAYMENT], true);
-$canDispute = in_array($status, [TRADE_STATUS_PAID_UNCONFIRMED], true);
+$canDispute = in_array($status, [TRADE_STATUS_PAID], true);
 
 return [
     'trade'        => $trade,
