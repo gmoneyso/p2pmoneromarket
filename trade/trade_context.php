@@ -40,6 +40,7 @@ $canDispute = in_array($status, [TRADE_STATUS_PAID], true);
 
 return [
     'trade'        => $trade,
+    'userId'       => $userId,
     'role'         => $role,
     'counterparty' => $counterparty,
     'canPay'       => $canPay,

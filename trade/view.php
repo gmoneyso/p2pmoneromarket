@@ -13,6 +13,11 @@ $isTerminal = in_array($status, [
 $hasCountdown = $status === TRADE_STATUS_PENDING_PAYMENT;
 $payment = trade_latest_payment($pdo, (int)$trade['id']);
 
+$viewerHasReview = false;
+if ($status === TRADE_STATUS_RELEASED) {
+    $viewerHasReview = trade_user_has_review($pdo, (int)$trade['id'], (int)$ctx['userId']);
+}
+
 function explorer_tx_url(string $coin, string $txid): ?string
 {
     $map = [
@@ -86,6 +91,20 @@ $paymentExplorer = $payment ? explorer_tx_url((string)$payment['crypto'], (strin
                     · <a class="trade-link" target="_blank" rel="noopener" href="<?= htmlspecialchars($paymentExplorer) ?>">Open Explorer</a>
                 <?php endif; ?>
             </div>
+        <?php endif; ?>
+
+        <?php if ($status === TRADE_STATUS_RELEASED): ?>
+            <?php if (!$viewerHasReview): ?>
+                <div class="trade-panel">
+                    <p>This trade is complete. You can leave an optional review for your counterparty.</p>
+                    <div class="trade-actions-row">
+                        <a class="btn" href="/reviews/start.php?trade_id=<?= (int)$trade['id'] ?>">Leave Review</a>
+                        <a class="btn" href="/dashboard.php">Skip to Dashboard</a>
+                    </div>
+                </div>
+            <?php else: ?>
+                <div class="trade-note">You already submitted a review for this trade.</div>
+            <?php endif; ?>
         <?php endif; ?>
 
         <?php if ($ctx['canPay']): ?>

@@ -246,3 +246,17 @@ function trade_expire_if_due(PDO $pdo, int $tradeId): bool
         return false;
     }
 }
+
+
+function trade_user_has_review(PDO $pdo, int $tradeId, int $userId): bool
+{
+    $stmt = $pdo->prepare("
+        SELECT 1
+        FROM reviews
+        WHERE trade_id = ? AND reviewer_id = ?
+        LIMIT 1
+    ");
+    $stmt->execute([$tradeId, $userId]);
+
+    return (bool)$stmt->fetchColumn();
+}
