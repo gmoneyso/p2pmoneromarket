@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 const TRADE_STATUS_PENDING_PAYMENT = 'pending_payment';
-const TRADE_STATUS_PAID = 'paid';
+const TRADE_STATUS_PAID_UNCONFIRMED = 'paid_unconfirmed';
 const TRADE_STATUS_RELEASED = 'released';
 const TRADE_STATUS_CANCELLED = 'cancelled';
 const TRADE_STATUS_EXPIRED = 'expired';
@@ -19,11 +19,11 @@ function trade_allowed_transitions(): array
 {
     return [
         TRADE_STATUS_PENDING_PAYMENT => [
-            TRADE_STATUS_PAID,
+            TRADE_STATUS_PAID_UNCONFIRMED,
             TRADE_STATUS_CANCELLED,
             TRADE_STATUS_EXPIRED,
         ],
-        TRADE_STATUS_PAID => [
+        TRADE_STATUS_PAID_UNCONFIRMED => [
             TRADE_STATUS_RELEASED,
             TRADE_STATUS_DISPUTED,
         ],

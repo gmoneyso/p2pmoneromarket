@@ -27,6 +27,9 @@ $sql = "
         l.max_xmr,
         l.payment_time_limit,
         l.terms,
+        l.payin_address,
+        l.payin_network,
+        l.payin_tag_memo,
         l.created_at,
         u.username
     FROM listings l

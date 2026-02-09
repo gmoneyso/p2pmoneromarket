@@ -25,12 +25,33 @@ function validate_ad(array $d): array {
         throw new Exception('Invalid time limit');
     }
 
+    $payinAddress = trim((string)($d['payin_address'] ?? ''));
+    $payinNetwork = trim((string)($d['payin_network'] ?? ''));
+    $payinTagMemo = trim((string)($d['payin_tag_memo'] ?? ''));
+
+    if (strlen($payinAddress) > 255) {
+        throw new Exception('Payment address too long');
+    }
+    if (strlen($payinNetwork) > 32) {
+        throw new Exception('Payment network too long');
+    }
+    if (strlen($payinTagMemo) > 128) {
+        throw new Exception('Payment memo/tag too long');
+    }
+
+    if (($d['type'] ?? '') === 'sell' && $payinAddress === '') {
+        throw new Exception('Payment address is required for sell ads');
+    }
+
     return [
         'crypto_pay' => $d['crypto_pay'],
         'margin_percent' => $margin,
         'min_xmr' => $min,
         'max_xmr' => $max,
         'payment_time_limit' => $time,
-        'terms' => trim($d['terms'] ?? '')
+        'terms' => trim($d['terms'] ?? ''),
+        'payin_address' => $payinAddress !== '' ? $payinAddress : null,
+        'payin_network' => $payinNetwork !== '' ? $payinNetwork : null,
+        'payin_tag_memo' => $payinTagMemo !== '' ? $payinTagMemo : null,
     ];
 }

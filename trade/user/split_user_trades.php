@@ -9,7 +9,7 @@ $ongoingTrades = array_values(array_filter(
     $trades,
     static fn(array $trade): bool => in_array(
         (string)$trade['status'],
-        [TRADE_STATUS_PENDING_PAYMENT, TRADE_STATUS_PAID, TRADE_STATUS_DISPUTED],
+        [TRADE_STATUS_PENDING_PAYMENT, TRADE_STATUS_PAID_UNCONFIRMED, TRADE_STATUS_DISPUTED],
         true
     )
 ));

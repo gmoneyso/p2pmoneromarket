@@ -84,6 +84,18 @@
         required
     >
 
+
+    <?php if ($type === 'sell'): ?>
+        <label>Receive payment address</label>
+        <input type="text" name="payin_address" maxlength="255" placeholder="Destination address">
+
+        <label>Network (optional)</label>
+        <input type="text" name="payin_network" maxlength="32" placeholder="ERC20, TRC20, etc.">
+
+        <label>Memo / Destination Tag (optional)</label>
+        <input type="text" name="payin_tag_memo" maxlength="128" placeholder="Memo / tag if required">
+    <?php endif; ?>
+
     <!-- TERMS -->
     <label>Trade terms</label>
     <textarea name="terms" rows="4"></textarea>

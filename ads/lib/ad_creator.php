@@ -41,7 +41,10 @@ function create_ad(array $data, PDO $pdo, string $type): void
             min_xmr,
             max_xmr,
             payment_time_limit,
-            terms
+            terms,
+            payin_address,
+            payin_network,
+            payin_tag_memo
         )
         VALUES
         (
@@ -52,7 +55,10 @@ function create_ad(array $data, PDO $pdo, string $type): void
             :min,
             :max,
             :time,
-            :terms
+            :terms,
+            :payin_address,
+            :payin_network,
+            :payin_tag_memo
         )
     ");
 
@@ -64,6 +70,9 @@ function create_ad(array $data, PDO $pdo, string $type): void
         ':min'    => $v['min_xmr'],
         ':max'    => $v['max_xmr'],
         ':time'   => $v['payment_time_limit'],
-        ':terms'  => $v['terms']
+        ':terms'  => $v['terms'],
+        ':payin_address' => $v['payin_address'],
+        ':payin_network' => $v['payin_network'],
+        ':payin_tag_memo' => $v['payin_tag_memo'],
     ]);
 }

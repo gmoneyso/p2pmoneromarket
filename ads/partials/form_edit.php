@@ -42,6 +42,18 @@
         <?php include __DIR__ . '/price_preview.php'; ?>
     </div>
 
+
+    <?php if ($ad['type'] === 'sell'): ?>
+        <label>Receive payment address</label>
+        <input type="text" name="payin_address" maxlength="255" value="<?= htmlspecialchars((string)($ad['payin_address'] ?? '')) ?>" placeholder="Destination address">
+
+        <label>Network (optional)</label>
+        <input type="text" name="payin_network" maxlength="32" value="<?= htmlspecialchars((string)($ad['payin_network'] ?? '')) ?>" placeholder="ERC20, TRC20, etc.">
+
+        <label>Memo / Destination Tag (optional)</label>
+        <input type="text" name="payin_tag_memo" maxlength="128" value="<?= htmlspecialchars((string)($ad['payin_tag_memo'] ?? '')) ?>" placeholder="Memo / tag if required">
+    <?php endif; ?>
+
     <!-- TERMS -->
     <label>Trade terms</label>
     <textarea name="terms"><?= htmlspecialchars($ad['terms'] ?? '') ?></textarea>

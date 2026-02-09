@@ -66,13 +66,37 @@ try {
         throw new RuntimeException('Insufficient balance for escrow');
     }
 
-    $stmt = $pdo->prepare("\n        INSERT INTO trades (\n            listing_id,\n            buyer_id,\n            seller_id,\n            xmr_amount,\n            crypto_pay,\n            market_price_snapshot,\n            margin_percent,\n            final_price,\n            crypto_amount,\n            fee_xmr,\n            status,\n            expires_at\n        ) VALUES (\n            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,\n            DATE_ADD(NOW(), INTERVAL ? MINUTE)\n        )\n    ");
+    $stmt = $pdo->prepare("
+        INSERT INTO trades (
+            listing_id,
+            buyer_id,
+            seller_id,
+            xmr_amount,
+            crypto_pay,
+            payin_address_snapshot,
+            payin_network_snapshot,
+            payin_tag_memo_snapshot,
+            market_price_snapshot,
+            margin_percent,
+            final_price,
+            crypto_amount,
+            fee_xmr,
+            status,
+            expires_at
+        ) VALUES (
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+            DATE_ADD(NOW(), INTERVAL ? MINUTE)
+        )
+    ");
     $stmt->execute([
         $listingId,
         $buyerId,
         $sellerId,
         $xmrAmount,
         $listing['crypto_pay'],
+        $listing['payin_address'] ?? null,
+        $listing['payin_network'] ?? null,
+        $listing['payin_tag_memo'] ?? null,
         $marketPrice,
         $margin,
         $finalPrice,

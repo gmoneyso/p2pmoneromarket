@@ -48,7 +48,7 @@ function trade_role_for_user(array $trade, int $userId): ?string
 function trade_latest_payment(PDO $pdo, int $tradeId): ?array
 {
     $stmt = $pdo->prepare("
-        SELECT id, trade_id, crypto, txid, amount, confirmations, created_at
+        SELECT id, trade_id, crypto, txid, amount, destination_address, destination_network, destination_tag_memo, confirmations, created_at
         FROM trade_payments
         WHERE trade_id = ?
         ORDER BY id DESC

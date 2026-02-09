@@ -266,7 +266,7 @@
     color: #ffbd69;
 }
 
-.trade-status-paid {
+.trade-status-paid_unconfirmed {
     background: #0f2432;
     color: #7dd3fc;
 }

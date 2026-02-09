@@ -14,6 +14,9 @@ function fetch_trade_ad(PDO $pdo, int $ad_id): ?array
             l.max_xmr,
             l.payment_time_limit,
             l.terms,
+            l.payin_address,
+            l.payin_network,
+            l.payin_tag_memo,
             l.status,
             u.username
         FROM listings l

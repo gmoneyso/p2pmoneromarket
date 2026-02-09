@@ -58,19 +58,25 @@ try {
         throw new RuntimeException('Payment proof already submitted');
     }
 
-    $stmt = $pdo->prepare("\n        INSERT INTO trade_payments (trade_id, crypto, txid, amount, confirmations)\n        VALUES (?, ?, ?, ?, 0)\n    ");
+    $stmt = $pdo->prepare("
+        INSERT INTO trade_payments (trade_id, crypto, txid, amount, destination_address, destination_network, destination_tag_memo, confirmations)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+    ");
     $stmt->execute([
         $tradeId,
         strtolower((string)$trade['crypto_pay']),
         $txid,
         (float)$trade['crypto_amount'],
+        $trade['payin_address_snapshot'] ?? null,
+        $trade['payin_network_snapshot'] ?? null,
+        $trade['payin_tag_memo_snapshot'] ?? null,
     ]);
 
     trade_set_status(
         $pdo,
         $tradeId,
         TRADE_STATUS_PENDING_PAYMENT,
-        TRADE_STATUS_PAID
+        TRADE_STATUS_PAID_UNCONFIRMED
     );
 
     $pdo->commit();

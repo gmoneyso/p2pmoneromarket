@@ -90,7 +90,13 @@ $paymentExplorer = $payment ? explorer_tx_url((string)$payment['crypto'], (strin
 
         <?php if ($ctx['canPay']): ?>
             <div class="trade-panel">
-                <p>Send <strong><?= number_format((float)$trade['crypto_amount'], 8) ?> <?= strtoupper($trade['crypto_pay']) ?></strong> to <strong><?= htmlspecialchars($ctx['counterparty']) ?></strong>.</p>
+                <p>Send <strong><?= number_format((float)$trade['crypto_amount'], 8) ?> <?= strtoupper($trade['crypto_pay']) ?></strong> to <strong><?= htmlspecialchars((string)($trade['payin_address_snapshot'] ?? 'N/A')) ?></strong>.</p>
+                <?php if (!empty($trade['payin_network_snapshot'])): ?>
+                    <p>Network: <strong><?= htmlspecialchars((string)$trade['payin_network_snapshot']) ?></strong></p>
+                <?php endif; ?>
+                <?php if (!empty($trade['payin_tag_memo_snapshot'])): ?>
+                    <p>Memo/Tag: <strong><?= htmlspecialchars((string)$trade['payin_tag_memo_snapshot']) ?></strong></p>
+                <?php endif; ?>
                 <p>You will receive <strong><?= number_format((float)$trade['xmr_amount'], 8) ?> XMR</strong>.</p>
                 <pre class="trade-terms"><?= htmlspecialchars((string)($trade['listing_terms'] ?? '')) ?></pre>
 
@@ -104,7 +110,7 @@ $paymentExplorer = $payment ? explorer_tx_url((string)$payment['crypto'], (strin
 
         <?php elseif ($ctx['canConfirm']): ?>
             <div class="trade-panel">
-                <p>Buyer <strong><?= htmlspecialchars($ctx['counterparty']) ?></strong> marked payment as sent.</p>
+                <p>Buyer <strong><?= htmlspecialchars($ctx['counterparty']) ?></strong> marked payment as sent (awaiting your confirmation).</p>
                 <form method="post" action="/trade/confirm_release.php" class="trade-action-form">
                     <input type="hidden" name="trade_id" value="<?= (int)$trade['id'] ?>">
                     <button type="submit">Confirm Payment Received</button>
