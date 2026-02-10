@@ -1,9 +1,9 @@
 /*M!999999\- enable the sandbox mode */ 
--- MariaDB dump 10.19  Distrib 10.11.14-MariaDB, for debian-linux-gnu (x86_64)
+-- MariaDB dump 10.19  Distrib 10.11.13-MariaDB, for debian-linux-gnu (x86_64)
 --
 -- Host: localhost    Database: p2pmonero
 -- ------------------------------------------------------
--- Server version	10.11.14-MariaDB-0ubuntu0.24.04.1
+-- Server version	10.11.13-MariaDB-0ubuntu0.24.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -62,7 +62,7 @@ CREATE TABLE `balance_ledger` (
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `fk_ledger_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -74,21 +74,7 @@ LOCK TABLES `balance_ledger` WRITE;
 INSERT INTO `balance_ledger` VALUES
 (1,2,'deposit',1,0.001000000000,'credit','unlocked',0.001000000000,'2026-01-26 06:57:14'),
 (2,2,'deposit',2,0.001653922900,'credit','unlocked',0.002653922900,'2026-01-26 06:57:14'),
-(3,1,'deposit',3,0.001000000000,'credit','unlocked',0.001000000000,'2026-01-26 07:17:05'),
-(4,1,'escrow_lock',1,0.000500000000,'debit','locked',0.000500000000,'2026-02-04 01:28:39'),
-(5,1,'escrow_lock',2,0.001000000000,'debit','locked',-0.000500000000,'2026-02-09 13:49:38'),
-(6,1,'escrow_release',2,0.001000000000,'credit','unlocked',0.000500000000,'2026-02-09 14:15:02'),
-(7,2,'escrow_lock',3,0.001000000000,'debit','locked',0.001653922900,'2026-02-09 17:37:24'),
-(8,2,'escrow_release',3,0.001000000000,'credit','unlocked',0.002653922900,'2026-02-09 17:47:25'),
-(9,2,'escrow_lock',4,0.000900000000,'debit','locked',0.001753922900,'2026-02-09 18:31:34'),
-(10,2,'escrow_release',4,0.000900000000,'debit','unlocked',0.000853922900,'2026-02-09 18:33:30'),
-(11,3,'escrow_release',4,0.000900000000,'credit','unlocked',0.000900000000,'2026-02-09 18:33:30'),
-(12,3,'fee',4,0.000009000000,'debit','unlocked',0.000891000000,'2026-02-09 18:33:30'),
-(13,1,'fee',4,0.000009000000,'credit','unlocked',0.000509000000,'2026-02-09 18:33:30'),
-(14,1,'escrow_release',1,0.000500000000,'debit','unlocked',0.000009000000,'2026-02-09 19:25:24'),
-(15,2,'escrow_release',1,0.000500000000,'credit','unlocked',0.001353922900,'2026-02-09 19:25:24'),
-(16,2,'fee',1,0.000005000000,'debit','unlocked',0.001348922900,'2026-02-09 19:25:24'),
-(17,1,'fee',1,0.000005000000,'credit','unlocked',0.000014000000,'2026-02-09 19:25:24');
+(3,1,'deposit',3,0.001000000000,'credit','unlocked',0.001000000000,'2026-01-26 07:17:05');
 /*!40000 ALTER TABLE `balance_ledger` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -152,18 +138,17 @@ CREATE TABLE `listings` (
   `max_xmr` decimal(20,12) NOT NULL,
   `payment_time_limit` int(11) NOT NULL COMMENT 'Minutes before trade expires',
   `terms` text DEFAULT NULL,
-  `payin_address` varchar(255) DEFAULT NULL,
-  `payin_network` varchar(32) DEFAULT NULL,
-  `payin_tag_memo` varchar(128) DEFAULT NULL,
+  `payin_address` varchar(255) DEFAULT NULL COMMENT 'Destination address where counterparty sends crypto',
+  `payin_network` varchar(32) DEFAULT NULL COMMENT 'Optional network identifier e.g. ERC20/TRC20',
+  `payin_tag_memo` varchar(128) DEFAULT NULL COMMENT 'Optional destination tag/memo',
   `status` enum('active','paused','closed') DEFAULT 'active',
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `idx_user` (`user_id`),
   KEY `idx_type` (`type`),
   KEY `idx_status` (`status`),
-  KEY `idx_crypto_type_status` (`crypto_pay`,`type`,`status`),
   CONSTRAINT `fk_listing_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -172,53 +157,13 @@ CREATE TABLE `listings` (
 
 LOCK TABLES `listings` WRITE;
 /*!40000 ALTER TABLE `listings` DISABLE KEYS */;
-INSERT INTO `listings` VALUES
-(10,1,'sell','usdt',-12.000,0.000500000000,0.001000000000,10,'100dhduehci28udhbc88qoooqknxic882ihw8cib2j199x00cje828',NULL,NULL,NULL,'active','2026-02-01 06:38:02'),
-(11,1,'buy','usdt',0.300,0.100000000000,1.000000000000,10,'usdtge36774gni6yrr3tj6j5tf33rg53gh65hdw2egy6',NULL,NULL,NULL,'active','2026-02-01 10:35:05'),
-(13,2,'sell','btc',1.000,0.000500000000,0.002600000000,10,'pay btc to my adress\r\nbtcssxcdheuxjjeiwoqozjcydbfmcoaoqmxmcueudhx','btcssxcdheuxjjeiwoqozjcydbfmcoaoqmxmcueudhx',NULL,NULL,'active','2026-02-09 17:33:01'),
-(14,2,'buy','btc',1.000,1.000000000000,100.000000000000,10,'please provide your payment details so i can make payments as soon as possible',NULL,NULL,NULL,'active','2026-02-09 17:35:55');
+INSERT INTO `listings`
+(`id`,`user_id`,`type`,`crypto_pay`,`margin_percent`,`min_xmr`,`max_xmr`,`payment_time_limit`,`terms`,`payin_address`,`payin_network`,`payin_tag_memo`,`status`,`created_at`) VALUES
+(2,2,'buy','usdt',0.500,1.000000000000,10.000000000000,10,'ltcguyx fr4gh99r45g6yhi88hh4467jjgr45hh7jht4',NULL,NULL,NULL,'active','2026-01-28 07:58:27'),
+(3,2,'buy','bch',1.000,1.000000000000,10.000000000000,10,'ltcdf56tffttyuhbhrdse5578ikmfdsee45f6un8n8bfe35uj',NULL,NULL,NULL,'active','2026-01-28 07:59:17'),
+(4,1,'buy','btc',0.300,8.000000000000,25.000000000000,10,'btcvfdtyhjikiokny67h78ihy55fgy7u88ij',NULL,NULL,NULL,'active','2026-01-28 15:57:54'),
+(6,2,'sell','link',1.000,0.001000000000,0.002000000000,10,'linkdhshdjcjdiaiajnxjoekjdjcndjnd','0xSellerReceiveLinkAddressSample',NULL,NULL,'active','2026-01-30 05:50:27');
 /*!40000 ALTER TABLE `listings` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `reviews`
---
-
-DROP TABLE IF EXISTS `reviews`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `reviews` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `trade_id` bigint(20) NOT NULL,
-  `reviewer_id` int(11) NOT NULL,
-  `reviewee_id` int(11) NOT NULL,
-  `rating` tinyint(4) NOT NULL,
-  `comment` text DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uniq_trade_reviewer` (`trade_id`,`reviewer_id`),
-  KEY `idx_reviewee_created` (`reviewee_id`,`created_at`),
-  KEY `fk_reviews_reviewer` (`reviewer_id`),
-  CONSTRAINT `fk_reviews_reviewee` FOREIGN KEY (`reviewee_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_reviews_reviewer` FOREIGN KEY (`reviewer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_reviews_trade` FOREIGN KEY (`trade_id`) REFERENCES `trades` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `chk_reviews_no_self` CHECK (`reviewer_id` <> `reviewee_id`),
-  CONSTRAINT `chk_reviews_rating` CHECK (`rating` between 1 and 5)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `reviews`
---
-
-LOCK TABLES `reviews` WRITE;
-/*!40000 ALTER TABLE `reviews` DISABLE KEYS */;
-INSERT INTO `reviews` VALUES
-(1,1,2,1,5,'very fast','2026-02-09 21:47:02'),
-(2,1,1,2,5,NULL,'2026-02-09 22:55:43'),
-(3,4,2,3,5,'very nice','2026-02-10 10:53:06'),
-(4,4,3,2,5,'Very fast','2026-02-10 10:55:21');
-/*!40000 ALTER TABLE `reviews` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -267,7 +212,7 @@ CREATE TABLE `subaddresses` (
   UNIQUE KEY `address` (`address`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `subaddresses_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -286,11 +231,7 @@ INSERT INTO `subaddresses` VALUES
 (7,6,'84ZydfJdb3HNzfRgBE7wkza8rbBYtz7XPZNXgdHGHQf9G5QLae6VRTgVWmfUtpGvCC7m8dr3kVmxBKEh5BriHt9mVnJfJd7',9,'2026-01-31 08:08:51'),
 (8,6,'8A7GkvyaCPDV5A9iQWMCgGEhLLZjwae1dZpioDXDPowM5kyuWxC2QQYMRN9WWk7JVkZG9QYkpnAFpXet33Zttwb7FU6E4wJ',10,'2026-01-31 08:08:55'),
 (9,6,'84HpX3Q4zTsffGVZfq4eb7i7Q1gqx1KQ3fL9PwoyqYrqT18DqkwKbD1i6Y37rNSiwahLAKQR5xceJXQezUYpz7gh3jghxxz',11,'2026-01-31 08:08:58'),
-(10,6,'84VNmK3QhBB6TJ57FvF5nTQkGJVJhtqm3Nzin7fSKa2ujju2JYbdkAjhZaxZ9ELtyqXwid1P7V4Z9BhG1wBRcRKQNAqsLPz',12,'2026-01-31 08:09:05'),
-(11,1,'83ftVtvtfN1dPFBb7oBea7dgVDGcgZwE78VnsAtYtE83PYqvkynhm3wG5QaW9ju6n2a92GhFCFkGkeFgwphXjtfc1KVx4sZ',13,'2026-02-04 01:39:07'),
-(12,2,'8BEnMKhAkMaNjLPCVsvGNZ75Ti9XtdYY3NaqDEJR51Bm8gRGU2NiN2PCwYoiyPEvAwiUSMgbbwDfP5948ey3N8U1CSs9TTC',14,'2026-02-06 18:28:54'),
-(13,2,'83DqCeRCcRoXYdUVV9q9JSRMDZzGhE3QiE3YphWvSnm84bXhZ4EaeMXNZRCYyqx5usBHZvV4cExMx9p8qcemJuxxLtx6QFY',15,'2026-02-06 18:29:09'),
-(14,9,'87ShCaRtXHVhBrVWsezV5B5MNA63umuncTxnK2C9sWfkbMmsqU66R85MvxAPBP2BEeHGpowJZgXntb2YqMsFqesJHgZP4Tr',16,'2026-02-10 11:23:05');
+(10,6,'84VNmK3QhBB6TJ57FvF5nTQkGJVJhtqm3Nzin7fSKa2ujju2JYbdkAjhZaxZ9ELtyqXwid1P7V4Z9BhG1wBRcRKQNAqsLPz',12,'2026-01-31 08:09:05');
 /*!40000 ALTER TABLE `subaddresses` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -316,7 +257,7 @@ CREATE TABLE `trade_payments` (
   UNIQUE KEY `uniq_txid` (`txid`),
   KEY `fk_payment_trade` (`trade_id`),
   CONSTRAINT `fk_payment_trade` FOREIGN KEY (`trade_id`) REFERENCES `trades` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -325,8 +266,6 @@ CREATE TABLE `trade_payments` (
 
 LOCK TABLES `trade_payments` WRITE;
 /*!40000 ALTER TABLE `trade_payments` DISABLE KEYS */;
-INSERT INTO `trade_payments` VALUES
-(2,4,'btc','thduwuwjcjcidieieivkvndkwiwoqosockd8e8fjjr8e7chdjw8eif8d8e',0.000004206134,'btcssxcdheuxjjeiwoqozjcydbfmcoaoqmxmcueudhx',NULL,NULL,0,'2026-02-09 18:31:51');
 /*!40000 ALTER TABLE `trade_payments` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -344,9 +283,9 @@ CREATE TABLE `trades` (
   `seller_id` int(11) NOT NULL,
   `xmr_amount` decimal(20,12) NOT NULL,
   `crypto_pay` enum('btc','eth','ltc','bch','xrp','xlm','link','dot','yfi','sol','usdt') NOT NULL,
-  `payin_address_snapshot` varchar(255) DEFAULT NULL,
-  `payin_network_snapshot` varchar(32) DEFAULT NULL,
-  `payin_tag_memo_snapshot` varchar(128) DEFAULT NULL,
+  `payin_address_snapshot` varchar(255) DEFAULT NULL COMMENT 'Snapshot of listing destination address at trade start',
+  `payin_network_snapshot` varchar(32) DEFAULT NULL COMMENT 'Snapshot of listing destination network',
+  `payin_tag_memo_snapshot` varchar(128) DEFAULT NULL COMMENT 'Snapshot of listing destination tag/memo',
   `market_price_snapshot` decimal(20,12) NOT NULL COMMENT 'Live market price at trade start',
   `margin_percent` decimal(6,3) NOT NULL,
   `final_price` decimal(20,12) NOT NULL COMMENT 'Market price after margin applied',
@@ -360,11 +299,10 @@ CREATE TABLE `trades` (
   KEY `idx_buyer` (`buyer_id`),
   KEY `idx_seller` (`seller_id`),
   KEY `idx_status` (`status`),
-  KEY `idx_status_expires` (`status`,`expires_at`),
   CONSTRAINT `fk_trade_buyer` FOREIGN KEY (`buyer_id`) REFERENCES `users` (`id`),
   CONSTRAINT `fk_trade_listing` FOREIGN KEY (`listing_id`) REFERENCES `listings` (`id`),
   CONSTRAINT `fk_trade_seller` FOREIGN KEY (`seller_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -373,12 +311,43 @@ CREATE TABLE `trades` (
 
 LOCK TABLES `trades` WRITE;
 /*!40000 ALTER TABLE `trades` DISABLE KEYS */;
-INSERT INTO `trades` VALUES
-(1,10,2,1,0.000500000000,'usdt',NULL,NULL,NULL,384.613843940000,-12.000,338.460182667200,0.169230091334,0.000005000000,'released','2026-02-04 01:38:39','2026-02-04 01:28:39'),
-(2,10,2,1,0.001000000000,'usdt',NULL,NULL,NULL,321.075389360000,-12.000,282.546342636800,0.282546342637,0.000010000000,'expired','2026-02-09 13:59:38','2026-02-09 13:49:38'),
-(3,13,3,2,0.001000000000,'btc','btcssxcdheuxjjeiwoqozjcydbfmcoaoqmxmcueudhx',NULL,NULL,0.004639430000,1.000,0.004685824300,0.000004685824,0.000010000000,'expired','2026-02-09 17:47:24','2026-02-09 17:37:24'),
-(4,13,3,2,0.000900000000,'btc','btcssxcdheuxjjeiwoqozjcydbfmcoaoqmxmcueudhx',NULL,NULL,0.004627210000,1.000,0.004673482100,0.000004206134,0.000009000000,'released','2026-02-09 18:41:34','2026-02-09 18:31:34');
 /*!40000 ALTER TABLE `trades` ENABLE KEYS */;
+UNLOCK TABLES;
+
+
+--
+-- Table structure for table `reviews`
+--
+
+DROP TABLE IF EXISTS `reviews`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `reviews` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `trade_id` bigint(20) NOT NULL,
+  `reviewer_id` int(11) NOT NULL,
+  `reviewee_id` int(11) NOT NULL,
+  `rating` tinyint(4) NOT NULL,
+  `comment` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_trade_reviewer` (`trade_id`,`reviewer_id`),
+  KEY `idx_reviewee_created` (`reviewee_id`,`created_at`),
+  CONSTRAINT `fk_reviews_trade` FOREIGN KEY (`trade_id`) REFERENCES `trades` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_reviews_reviewer` FOREIGN KEY (`reviewer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_reviews_reviewee` FOREIGN KEY (`reviewee_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `chk_reviews_no_self` CHECK (`reviewer_id` <> `reviewee_id`),
+  CONSTRAINT `chk_reviews_rating` CHECK (`rating` between 1 and 5)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `reviews`
+--
+
+LOCK TABLES `reviews` WRITE;
+/*!40000 ALTER TABLE `reviews` DISABLE KEYS */;
+/*!40000 ALTER TABLE `reviews` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -398,7 +367,7 @@ CREATE TABLE `users` (
   `backup_completed` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -413,10 +382,7 @@ INSERT INTO `users` VALUES
 (3,'sawiti','$argon2id$v=19$m=65536,t=4,p=1$MHFURjBxQklPZ0cwek9iZA$1htnYi50g9B5SvjccxMl0GECfGF9VVRuJyjdJGEdHPI','-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmDMEaXg5bxYJKwYBBAHaRw8BAQdAh/d+fwiLJtcwI09O6qO4oz/o+qG+l0991nWH\ngWiqyta0H3Nhd2l0aSA8c2F3aXRpQHAycG1vbmVyby5sb2NhbD6IkwQTFgoAOxYh\nBARClHQjZNzRmW4NwaknTxc0fJJaBQJpeDlvAhsDBQsJCAcCAiICBhUKCQgLAgQW\nAgMBAh4HAheAAAoJEKknTxc0fJJai2gA+gPBuT31kHOWTJ6b5KkyoynxcIhLTj/y\nZOX8F7chuJcDAQD/3Wrm4AtYzLil2Bb0fS0ExXub8DNLylFR6aYKYZoSArg4BGl4\nOW8SCisGAQQBl1UBBQEBB0CAIER/zXnZSMgOmoGiFpz9T1huxF6+OCwHsfnoCsak\ndAMBCAeIeAQYFgoAIBYhBARClHQjZNzRmW4NwaknTxc0fJJaBQJpeDlvAhsMAAoJ\nEKknTxc0fJJaX+0BAKJA0f0XuEjFv3OtTnd9ieeVXPcxYMJABTF6G8cQ+w78AQDA\n57Z3rPS9lOZfPtkq8XCo7MtHmW+dnO4QLYrvIIxECw==\n=TSNP\n-----END PGP PUBLIC KEY BLOCK-----','$2y$10$gfnxuCtdgNufWLOdG557N.to9lJqeCfg/7pWLoXCtSRjuKvzKav.6','2026-01-24 21:51:47',1),
 (4,'Danie','$argon2id$v=19$m=65536,t=4,p=1$TTZUMHhjTTU4Z0dESE1JRg$hczeQMCpVjjzdwPbC5z0/7pFb7mSKVNoHRlKk4r8FWQ',NULL,NULL,'2026-01-28 19:32:30',0),
 (5,'homelander','$argon2id$v=19$m=65536,t=4,p=1$Z2hERDlERDFGUjEyTXRabA$mEdip3qjV/ZX5TSfRjdVEbVGq6igWfCI1a8pn/cPEAg','-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmDMEaXpthxYJKwYBBAHaRw8BAQdAab7jP0PEDGdU+Rsry9nU48fDcLOq8It7d7GP\noO4Yh6W0J2hvbWVsYW5kZXIgPGhvbWVsYW5kZXJAcDJwbW9uZXJvLmxvY2FsPoiT\nBBMWCgA7FiEEz/t3YWPKRWSfR3AX2JySHTqhIY0FAml6bYcCGwMFCwkIBwICIgIG\nFQoJCAsCBBYCAwECHgcCF4AACgkQ2JySHTqhIY0WrwEA+l0Puoz5oDB2+8F41NzR\nHXbuSxO4DqyBRHZdZugoLfgA/jIujwa2QouBMmNuQnGIWeTjtyuHxx5hKyZOMb/v\nXB8IuDgEaXpthxIKKwYBBAGXVQEFAQEHQMz6dEXMuFryM/7i38FEa+62QdgAIzSs\n65r7zLJUbegbAwEIB4h4BBgWCgAgFiEEz/t3YWPKRWSfR3AX2JySHTqhIY0FAml6\nbYcCGwwACgkQ2JySHTqhIY305gD+OItDi71Qgam+2SzrzJ34OHooVRtKY5cLcs8B\nVCu6eDgBAMYoIUqekcjyV4J+W5vObRW41PNozWWj3kJeHFcifKIP\n=mdwj\n-----END PGP PUBLIC KEY BLOCK-----','$2y$10$qLHOVzYhJeSnZRoH5SIeU.W6ZO5yku5SKsL2JEF1zYAkA6S/K3.nS','2026-01-28 20:10:34',1),
-(6,'Champez','$argon2id$v=19$m=65536,t=4,p=1$TzVhOEZmekd0QmdqWnIydQ$09xOfW3v8rk/s6jCbHvXr5UKRh28jxC8UBfz4UaG32Y','-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmDMEaX24SRYJKwYBBAHaRw8BAQdADxiGWKGKiY+3EE4l8Wf2F8yjfShe9JZKRg0Y\ngBcH1qa0IUNoYW1wZXogPENoYW1wZXpAcDJwbW9uZXJvLmxvY2FsPoiTBBMWCgA7\nFiEEysRsk+cUnWClXFTIOTmW5nm9qRkFAml9uEkCGwMFCwkIBwICIgIGFQoJCAsC\nBBYCAwECHgcCF4AACgkQOTmW5nm9qRkQBgD+P/LpmCX6nWFXOFUJV+dyMUfkqXap\nXaWmuyCDRrqQNHwBAIh+pNz/cR4lQmqjzBmkkdzHVL3/6qlNexeOdw6QumQIuDgE\naX24SRIKKwYBBAGXVQEFAQEHQMLevBRApAFZVlTD6S77caVb7jzMbzTF+E9JuhFj\nEt5RAwEIB4h4BBgWCgAgFiEEysRsk+cUnWClXFTIOTmW5nm9qRkFAml9uEkCGwwA\nCgkQOTmW5nm9qRnWWQEAvhzJri74AiHoQ8yoWuXUsGbue2kX5vme9B1jBIbz6VoA\n/10SXOd/wk++J0hz3XDTX0GKTSjLpTc7ywqOuf+HKPAC\n=Jw8m\n-----END PGP PUBLIC KEY BLOCK-----','$2y$10$AVZHl5ddMb/j5JQhF7uuDuPxpK5Kj8nI4h3MitlZ//OapbQL131sO','2026-01-31 08:06:15',1),
-(7,'Champ','$argon2id$v=19$m=65536,t=4,p=1$bjRqRTFZWlJyUTVVOVk0Yw$aXS2Iszj7g/5tVpa9XAqKg5f6kIulWDcnhn1pUXrdWg','-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmDMEaX88zhYJKwYBBAHaRw8BAQdAH72HjRS1d13HxiOBS6wk/rAdMLi5kYgcu5il\nSZ/UJCm0HUNoYW1wIDxDaGFtcEBwMnBtb25lcm8ubG9jYWw+iJMEExYKADsWIQQ6\n8L/7Nt6ulfhrlcWeCkgFMqsR3QUCaX88zgIbAwULCQgHAgIiAgYVCgkICwIEFgID\nAQIeBwIXgAAKCRCeCkgFMqsR3Ti2AQDr8lnzgNb/l6TU/heYBJG98OzIvKuZQmYr\nfPWWTYLN6QEAhdWf1/+4vkN0QZ0BEER4ZTuyaCqQ2aAncKqFcNQwdwC4OARpfzzO\nEgorBgEEAZdVAQUBAQdAE9z3Ij8ZqmVq/bilV7BnT3ug4LcN/PN29zlH3hI2emwD\nAQgHiHgEGBYKACAWIQQ68L/7Nt6ulfhrlcWeCkgFMqsR3QUCaX88zgIbDAAKCRCe\nCkgFMqsR3UMmAQCVZIWzFEVc5/P3A1R2cdo5VFEApn21fEomEqo6/eaz/QEA/RfY\nx5NRhrgZPyIU8lwEiSNUWbw9IPMJe88VnZs+mwY=\n=ekNR\n-----END PGP PUBLIC KEY BLOCK-----','$2y$10$wJGH0pPPUXEEuRM5dbOuFeYryvfBAzZZLBv5kNvRqAN3p9QcPEpeW','2026-02-01 11:44:43',1),
-(8,'Nathannk','$argon2id$v=19$m=65536,t=4,p=1$bDMxdm9lQ0paSmJERnJXRQ$R/d1GouhsnNgpHMmVghfgUryHWqyc5vnI9sVo5o11jo',NULL,NULL,'2026-02-05 08:35:52',0),
-(9,'mikal','$argon2id$v=19$m=65536,t=4,p=1$NVEyc21KeGVERTh6VXJZRw$bspMNsg3kr+vEMEnp9YHRNkxzZvs2vQ1dgX0ze1Q4Co','-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmDMEaYsTyhYJKwYBBAHaRw8BAQdA4ZQJaZPdz1cHCtFuHnhvOW3PqOcsYAhiv+ho\nvLM6v2K0HW1pa2FsIDxtaWthbEBwMnBtb25lcm8ubG9jYWw+iJMEExYKADsWIQSU\nRFff+56UYmuZY6J+6HY4xNQdOwUCaYsTygIbAwULCQgHAgIiAgYVCgkICwIEFgID\nAQIeBwIXgAAKCRB+6HY4xNQdO0qsAP97pvn+eMOL8eHQkyuA6ZAqV9Jcb+2YkMct\n8Fn0JoQTeAEAsIDpv8xMFDdrOWju/cWZEf6+Rd3hVbpySXBUfPxIwQ24OARpixPK\nEgorBgEEAZdVAQUBAQdAATFtaiSq1lyhJlg+HZbIbTRFfMtSQNNe5rfcmkhlzwkD\nAQgHiHgEGBYKACAWIQSURFff+56UYmuZY6J+6HY4xNQdOwUCaYsTygIbDAAKCRB+\n6HY4xNQdO1d0AQD1mJxEK4Pq/AB6L4EwGqcFDiZS1S+F1hNeOeKncqTI9wEA1qpX\nD0pHwKGx48nj+5jmBMEohD71P4oJNOEt/J33Tgk=\n=fO8v\n-----END PGP PUBLIC KEY BLOCK-----','$2y$10$3pLwlKwAt6eZzM0yBxije.uHP9xCh4uubgBaN5nGCUgY9c2YJz4Y6','2026-02-10 11:16:58',1);
+(6,'Champez','$argon2id$v=19$m=65536,t=4,p=1$TzVhOEZmekd0QmdqWnIydQ$09xOfW3v8rk/s6jCbHvXr5UKRh28jxC8UBfz4UaG32Y','-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmDMEaX24SRYJKwYBBAHaRw8BAQdADxiGWKGKiY+3EE4l8Wf2F8yjfShe9JZKRg0Y\ngBcH1qa0IUNoYW1wZXogPENoYW1wZXpAcDJwbW9uZXJvLmxvY2FsPoiTBBMWCgA7\nFiEEysRsk+cUnWClXFTIOTmW5nm9qRkFAml9uEkCGwMFCwkIBwICIgIGFQoJCAsC\nBBYCAwECHgcCF4AACgkQOTmW5nm9qRkQBgD+P/LpmCX6nWFXOFUJV+dyMUfkqXap\nXaWmuyCDRrqQNHwBAIh+pNz/cR4lQmqjzBmkkdzHVL3/6qlNexeOdw6QumQIuDgE\naX24SRIKKwYBBAGXVQEFAQEHQMLevBRApAFZVlTD6S77caVb7jzMbzTF+E9JuhFj\nEt5RAwEIB4h4BBgWCgAgFiEEysRsk+cUnWClXFTIOTmW5nm9qRkFAml9uEkCGwwA\nCgkQOTmW5nm9qRnWWQEAvhzJri74AiHoQ8yoWuXUsGbue2kX5vme9B1jBIbz6VoA\n/10SXOd/wk++J0hz3XDTX0GKTSjLpTc7ywqOuf+HKPAC\n=Jw8m\n-----END PGP PUBLIC KEY BLOCK-----','$2y$10$AVZHl5ddMb/j5JQhF7uuDuPxpK5Kj8nI4h3MitlZ//OapbQL131sO','2026-01-31 08:06:15',1);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -460,4 +426,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-02-10 14:31:17
+-- Dump completed on 2026-02-01  5:34:43

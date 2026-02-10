@@ -35,18 +35,30 @@ function short_addr(string $addr): string {
 <style>
 /* Page-only layout helpers */
 .address-page {
-    max-width: 420px;
-    margin: 40px auto;
+    width: min(100%, 980px);
+    margin: 28px auto;
+    background: #101010;
+    border: 1px solid #1f1f1f;
 }
 
 .address-list {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr;
     gap: 12px;
 }
 
 .addr-card {
     cursor: pointer;
+    margin-bottom: 0;
+    background: #0c0c0c;
+    border: 1px solid #212121;
+    border-radius: 10px;
+    transition: border-color .15s ease, background .15s ease, transform .05s ease;
+}
+
+.addr-card:hover {
+    border-color: #2d2d2d;
+    background: #111;
 }
 
 .addr-top {
@@ -55,8 +67,53 @@ function short_addr(string $addr): string {
     align-items: center;
 }
 
+.addr-short,
+.addr-full {
+    margin: 0;
+}
+
+.addr-full {
+    display: none;
+    margin-top: 8px;
+    font-size: .82rem;
+    line-height: 1.35;
+    color: #cfcfcf;
+    word-break: break-all;
+}
+
+.copy-chip {
+    font-size: .72rem;
+    color: #8f8f8f;
+}
+
+.addr-meta {
+    margin-top: 8px;
+}
+
 .generate-wrap {
     margin-top: 28px;
+}
+
+@media (min-width: 760px) {
+    .address-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1100px) {
+    .address-list {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 900px) {
+    .addr-short {
+        display: none;
+    }
+
+    .addr-full {
+        display: block;
+    }
 }
 </style>
 </head>
@@ -82,6 +139,7 @@ function short_addr(string $addr): string {
                     <div class="addr-short mono">
                         <?= htmlspecialchars(short_addr($a['address'])) ?>
                     </div>
+                    <span class="copy-chip">Click to copy</span>
                 </div>
 
                 <div class="addr-full mono">
