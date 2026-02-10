@@ -27,6 +27,11 @@ $is_logged_in = isset($_SESSION['user_id']);
                 <span class="text">My Ads</span>
             </a>
 
+            <a href="/user/profile.php?id=<?= (int)$_SESSION['user_id'] ?>" class="nav-item" title="Profile">
+                <span class="icon" aria-hidden="true">👤</span>
+                <span class="text">Profile</span>
+            </a>
+
             <a href="/logout.php" class="nav-item danger" title="Logout">
                 <span class="icon" aria-hidden="true">⏻</span>
                 <span class="text">Logout</span>

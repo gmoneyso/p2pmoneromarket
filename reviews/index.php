@@ -41,7 +41,6 @@ if ($received) {
     <div class="card" style="margin-bottom:14px;">
         <h2>My Reviews</h2>
         <p class="meta">Received: <?= count($received) ?> · Average: <?= number_format($avg, 2) ?></p>
-        <p><a class="btn" href="/dashboard.php">Back to Dashboard</a></p>
     </div>
 
     <div class="review-tabs">

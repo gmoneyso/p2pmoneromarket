@@ -10,10 +10,15 @@ require_login();
 $userId = (int)$_SESSION['user_id'];
 
 $stmt = $pdo->prepare("
-    SELECT address, created_at
-    FROM subaddresses
-    WHERE user_id = ?
-    ORDER BY id DESC
+    SELECT
+        s.id,
+        s.address,
+        COUNT(d.id) AS tx_count
+    FROM subaddresses s
+    LEFT JOIN deposits d ON d.subaddress_id = s.id
+    WHERE s.user_id = ?
+    GROUP BY s.id, s.address
+    ORDER BY s.id DESC
 ");
 $stmt->execute([$userId]);
 $addresses = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -119,6 +124,7 @@ function short_addr(string $addr): string {
 </head>
 
 <body>
+<?php require __DIR__ . '/../assets/header.php'; ?>
 
 <div class="container address-page">
 
@@ -147,7 +153,7 @@ function short_addr(string $addr): string {
                 </div>
 
                 <div class="addr-meta">
-                    Created <?= htmlspecialchars(date('Y-m-d H:i', strtotime($a['created_at']))) ?>
+                    Transactions: <?= (int)($a['tx_count'] ?? 0) ?>
                 </div>
             </div>
         <?php endforeach; ?>

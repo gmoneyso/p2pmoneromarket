@@ -11,6 +11,7 @@
             <a href="/ads/create.php" class="dash-icon" title="Create Ad">＋</a>
             <a href="/notifications.php" class="dash-icon" title="Notifications">🔔</a>
             <a href="/messages.php" class="dash-icon" title="Messages">✉️</a>
+            <a href="/user/profile.php?id=<?= (int)$_SESSION['user_id'] ?>" class="dash-icon" title="Profile">👤</a>
         </div>
 
         <!-- Mobile menu -->
@@ -20,6 +21,7 @@
                 <a href="/ads/create.php">➕ Create Ad</a>
                 <a href="/notifications.php">🔔 Notifications</a>
                 <a href="/messages.php">✉️ Messages</a>
+                <a href="/user/profile.php?id=<?= (int)$_SESSION['user_id'] ?>">👤 Profile</a>
             </div>
         </div>
 
