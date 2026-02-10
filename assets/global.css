@@ -173,6 +173,64 @@ button:hover,
     gap: 6px;
 }
 
+.seller-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.seller-link:hover {
+    color: var(--accent-soft);
+}
+
+.profile-wrap {
+    width: min(100%, 900px);
+    margin: 24px auto;
+    padding: 0 12px;
+}
+
+.profile-card pre {
+    margin: 10px 0 0;
+    padding: 12px;
+    background: #0d0d0d;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm);
+    max-height: 280px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.profile-stat {
+    background: #0d0d0d;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+}
+
+.profile-stat-label {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.profile-stat-value {
+    display: block;
+    margin-top: 4px;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+@media (max-width: 640px) {
+    .profile-stats {
+        grid-template-columns: 1fr;
+    }
+}
+
 .online-dot {
     width: 7px;
     height: 7px;
@@ -260,6 +318,60 @@ button:hover,
 .logo {
     font-weight: 700;
     color: var(--accent);
+    text-decoration: none;
+}
+
+.header-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nav-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    color: var(--text-main);
+    text-decoration: none;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.nav-item .icon {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.nav-item .text {
+    font-size: 0.9rem;
+}
+
+.nav-item:hover {
+    background: var(--bg-hover);
+    color: var(--accent-soft);
+}
+
+.nav-item.danger:hover {
+    color: #ff8a80;
+}
+
+@media (max-width: 700px) {
+    .header-nav {
+        gap: 4px;
+    }
+
+    .nav-item {
+        padding: 8px;
+    }
+
+    .nav-item .icon {
+        font-size: 1.2rem;
+    }
+
+    .nav-item .text {
+        display: none;
+    }
 }
 
 /* ===============================

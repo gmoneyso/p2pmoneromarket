@@ -40,13 +40,15 @@ $alreadyReviewed = review_user_has_review($pdo, $tradeId, $userId);
 
         <?php if ($alreadyReviewed): ?>
             <p>You already submitted a review for this trade.</p>
-            <p><a class="btn" href="/dashboard.php">Go to Dashboard</a></p>
+            <p><a class="btn" href="/dashboard.php">Go to Dashboard</a>
+                <a class="btn" href="/reviews/index.php">My Reviews</a></p>
 
         <?php elseif (!$canSubmit): ?>
             <p><?= htmlspecialchars($reason) ?></p>
             <p>
                 <a class="btn" href="/trade/view.php?id=<?= (int)$tradeId ?>">Back to Trade</a>
                 <a class="btn" href="/dashboard.php">Go to Dashboard</a>
+                <a class="btn" href="/reviews/index.php">My Reviews</a>
             </p>
 
         <?php else: ?>
@@ -70,6 +72,7 @@ $alreadyReviewed = review_user_has_review($pdo, $tradeId, $userId);
                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
                     <button type="submit" class="btn">Submit Review</button>
                     <a class="btn" href="/dashboard.php">Skip & Go to Dashboard</a>
+                    <a class="btn" href="/reviews/index.php">My Reviews</a>
                 </div>
             </form>
         <?php endif; ?>

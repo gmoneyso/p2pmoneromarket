@@ -3,7 +3,9 @@
         <!-- LEFT -->
         <div class="ad-left">
             <div class="ad-username">
-                <?= htmlspecialchars($ad['username']) ?>
+                <a class="seller-link" href="/user/profile.php?u=<?= rawurlencode((string)$ad['username']) ?>">
+                    <?= htmlspecialchars((string)$ad['username']) ?>
+                </a>
                 <?php if (!empty($ad['online'])): ?>
                     <span class="online-dot" title="Online"></span>
                 <?php endif; ?>
@@ -11,10 +13,10 @@
 
             <div class="seller-meta">
                 <span class="seller-rating">
-                    ⭐ <?= number_format($ad['rating'] ?? 0, 1) ?>
+                    ⭐ <?= number_format((float)($ad['rating'] ?? 0), 1) ?> (<?= (int)($ad['rating_count'] ?? 0) ?>)
                 </span>
                 <span class="seller-trades">
-                    📊 <?= (int)($ad['trade_count'] ?? 0) ?> trades
+                    📊 <?= (int)($ad['trade_count'] ?? 0) ?> completed
                 </span>
             </div>
 

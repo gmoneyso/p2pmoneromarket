@@ -50,3 +50,48 @@ function review_can_submit(PDO $pdo, array $trade, int $userId): array
 
     return [true, '', $revieweeId];
 }
+
+
+function review_fetch_received(PDO $pdo, int $userId): array
+{
+    $stmt = $pdo->prepare("
+        SELECT
+            r.id,
+            r.trade_id,
+            r.rating,
+            r.comment,
+            r.created_at,
+            u.username AS reviewer_username
+        FROM reviews r
+        INNER JOIN users u ON u.id = r.reviewer_id
+        INNER JOIN trades t ON t.id = r.trade_id
+        WHERE r.reviewee_id = ?
+          AND t.status = 'released'
+        ORDER BY r.created_at DESC, r.id DESC
+    ");
+    $stmt->execute([$userId]);
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+}
+
+function review_fetch_given(PDO $pdo, int $userId): array
+{
+    $stmt = $pdo->prepare("
+        SELECT
+            r.id,
+            r.trade_id,
+            r.rating,
+            r.comment,
+            r.created_at,
+            u.username AS reviewee_username
+        FROM reviews r
+        INNER JOIN users u ON u.id = r.reviewee_id
+        INNER JOIN trades t ON t.id = r.trade_id
+        WHERE r.reviewer_id = ?
+          AND t.status = 'released'
+        ORDER BY r.created_at DESC, r.id DESC
+    ");
+    $stmt->execute([$userId]);
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+}

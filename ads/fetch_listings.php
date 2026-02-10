@@ -2,6 +2,8 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../db/database.php';
+require_once __DIR__ . '/lib/reputation_reviews.php';
+require_once __DIR__ . '/lib/reputation_trades.php';
 
 /* ===============================
    Load price oracle
@@ -43,6 +45,14 @@ $stmt->execute();
 
 $ads = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+$userIds = array_values(array_unique(array_map(
+    static fn(array $ad): int => (int)$ad['user_id'],
+    $ads
+)));
+
+$reviewReputation = fetch_review_reputation_by_user($pdo, $userIds);
+$completedTrades  = fetch_completed_trade_counts_by_user($pdo, $userIds);
+
 /* ===============================
    Price calculation per ad
    =============================== */
@@ -64,9 +74,11 @@ foreach ($ads as &$ad) {
     $ad['min_trade_value']  = round($pricePerXmr * (float)$ad['min_xmr'], 8);
     $ad['max_trade_value']  = round($pricePerXmr * (float)$ad['max_xmr'], 8);
 
-    // TEMP defaults (until reputation system exists)
+    $ownerId = (int)$ad['user_id'];
     $ad['online'] = true;
-    $ad['rating'] = 0;
+    $ad['rating'] = (float)($reviewReputation[$ownerId]['rating'] ?? 0.0);
+    $ad['rating_count'] = (int)($reviewReputation[$ownerId]['rating_count'] ?? 0);
+    $ad['trade_count'] = (int)($completedTrades[$ownerId] ?? 0);
 }
 
 unset($ad);
