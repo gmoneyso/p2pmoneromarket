@@ -238,7 +238,7 @@ button {
 
 <div class="links">
     <a href="register.php">Register</a> |
-    <a href="recovery.php">Recovery</a>
+    <a href="/backup/recovery.php">Recovery</a>
 </div>
 
 <div class="note">

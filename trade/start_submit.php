@@ -82,6 +82,7 @@ try {
         throw new RuntimeException('Insufficient balance for escrow');
     }
 
+
     $stmt = $pdo->prepare("
         INSERT INTO trades (
             listing_id,

@@ -105,6 +105,41 @@
     outline: 1px solid var(--accent);
 }
 
+.passphrase-input {
+    width: 100%;
+    padding: 12px;
+    margin-top: 6px;
+    margin-bottom: 4px;
+    background: var(--bg-input);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: #fff;
+}
+
+.passphrase-input:focus {
+    outline: 1px solid var(--accent);
+}
+
+.passphrase-alert {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 0.82rem;
+    border: 1px solid transparent;
+}
+
+.passphrase-alert.error {
+    background: #2a1111;
+    border-color: #6a1f1f;
+    color: #f7b2b2;
+}
+
+.passphrase-alert.success {
+    background: #102416;
+    border-color: #1f6e3c;
+    color: #9ef0ba;
+}
+
 .trade-preview {
     margin-top: 12px;
     border: 1px solid var(--border-soft);

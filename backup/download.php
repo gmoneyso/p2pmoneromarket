@@ -142,7 +142,7 @@ button:disabled {
     <div id="passBox" class="pass-box" onclick="copyPass()">
         <?= $passphraseDisplay ?>
     </div>
-    <small class="note">Tap to copy</small>
+    <small class="note">Tap to copy exactly as shown (no formatting changes).</small>
 
     <div style="margin-top:22px;">
         <a href="/backup/temp/<?= urlencode($username) ?>/<?= urlencode($username) ?>_backup.txt"

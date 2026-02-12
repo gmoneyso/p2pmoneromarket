@@ -32,10 +32,11 @@ try {
         throw new RuntimeException('Trade not releasable');
     }
 
+    $sellerId = (int)$trade['seller_id'];
+
     $xmrAmount = (float)$trade['xmr_amount'];
     $feeXmr    = (float)$trade['fee_xmr'];
     $buyerId   = (int)$trade['buyer_id'];
-    $sellerId  = (int)$trade['seller_id'];
     $platformFeeUserId = trade_platform_fee_user_id($pdo);
 
     ledger_append(

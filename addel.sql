@@ -1,9 +1,9 @@
 /*M!999999\- enable the sandbox mode */ 
--- MariaDB dump 10.19  Distrib 10.11.13-MariaDB, for debian-linux-gnu (x86_64)
+-- MariaDB dump 10.19  Distrib 10.11.14-MariaDB, for debian-linux-gnu (x86_64)
 --
 -- Host: localhost    Database: p2pmonero
 -- ------------------------------------------------------
--- Server version	10.11.13-MariaDB-0ubuntu0.24.04.1
+-- Server version	10.11.14-MariaDB-0ubuntu0.24.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -157,13 +157,86 @@ CREATE TABLE `listings` (
 
 LOCK TABLES `listings` WRITE;
 /*!40000 ALTER TABLE `listings` DISABLE KEYS */;
-INSERT INTO `listings`
-(`id`,`user_id`,`type`,`crypto_pay`,`margin_percent`,`min_xmr`,`max_xmr`,`payment_time_limit`,`terms`,`payin_address`,`payin_network`,`payin_tag_memo`,`status`,`created_at`) VALUES
+INSERT INTO `listings` VALUES
 (2,2,'buy','usdt',0.500,1.000000000000,10.000000000000,10,'ltcguyx fr4gh99r45g6yhi88hh4467jjgr45hh7jht4',NULL,NULL,NULL,'active','2026-01-28 07:58:27'),
 (3,2,'buy','bch',1.000,1.000000000000,10.000000000000,10,'ltcdf56tffttyuhbhrdse5578ikmfdsee45f6un8n8bfe35uj',NULL,NULL,NULL,'active','2026-01-28 07:59:17'),
 (4,1,'buy','btc',0.300,8.000000000000,25.000000000000,10,'btcvfdtyhjikiokny67h78ihy55fgy7u88ij',NULL,NULL,NULL,'active','2026-01-28 15:57:54'),
 (6,2,'sell','link',1.000,0.001000000000,0.002000000000,10,'linkdhshdjcjdiaiajnxjoekjdjcndjnd','0xSellerReceiveLinkAddressSample',NULL,NULL,'active','2026-01-30 05:50:27');
 /*!40000 ALTER TABLE `listings` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `notifications`
+--
+
+DROP TABLE IF EXISTS `notifications`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `notifications` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `type` varchar(64) NOT NULL,
+  `title` varchar(160) NOT NULL,
+  `body` text NOT NULL,
+  `entity_type` varchar(32) DEFAULT NULL,
+  `entity_id` bigint(20) DEFAULT NULL,
+  `data_json` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`data_json`)),
+  `is_read` tinyint(1) NOT NULL DEFAULT 0,
+  `read_at` datetime DEFAULT NULL,
+  `dedupe_key` varchar(128) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_notifications_dedupe` (`dedupe_key`),
+  KEY `idx_notifications_user_created` (`user_id`,`created_at`),
+  KEY `idx_notifications_user_read` (`user_id`,`is_read`),
+  CONSTRAINT `fk_notifications_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `notifications`
+--
+
+LOCK TABLES `notifications` WRITE;
+/*!40000 ALTER TABLE `notifications` DISABLE KEYS */;
+/*!40000 ALTER TABLE `notifications` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `reviews`
+--
+
+DROP TABLE IF EXISTS `reviews`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `reviews` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `trade_id` bigint(20) NOT NULL,
+  `reviewer_id` int(11) NOT NULL,
+  `reviewee_id` int(11) NOT NULL,
+  `rating` tinyint(4) NOT NULL,
+  `comment` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_trade_reviewer` (`trade_id`,`reviewer_id`),
+  KEY `idx_reviewee_created` (`reviewee_id`,`created_at`),
+  KEY `fk_reviews_reviewer` (`reviewer_id`),
+  CONSTRAINT `fk_reviews_reviewee` FOREIGN KEY (`reviewee_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_reviews_reviewer` FOREIGN KEY (`reviewer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_reviews_trade` FOREIGN KEY (`trade_id`) REFERENCES `trades` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `chk_reviews_no_self` CHECK (`reviewer_id` <> `reviewee_id`),
+  CONSTRAINT `chk_reviews_rating` CHECK (`rating` between 1 and 5)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `reviews`
+--
+
+LOCK TABLES `reviews` WRITE;
+/*!40000 ALTER TABLE `reviews` DISABLE KEYS */;
+/*!40000 ALTER TABLE `reviews` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -294,6 +367,7 @@ CREATE TABLE `trades` (
   `status` enum('pending_payment','paid','released','cancelled','expired','disputed') NOT NULL DEFAULT 'pending_payment',
   `expires_at` timestamp NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `idx_listing` (`listing_id`),
   KEY `idx_buyer` (`buyer_id`),
@@ -312,42 +386,6 @@ CREATE TABLE `trades` (
 LOCK TABLES `trades` WRITE;
 /*!40000 ALTER TABLE `trades` DISABLE KEYS */;
 /*!40000 ALTER TABLE `trades` ENABLE KEYS */;
-UNLOCK TABLES;
-
-
---
--- Table structure for table `reviews`
---
-
-DROP TABLE IF EXISTS `reviews`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `reviews` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `trade_id` bigint(20) NOT NULL,
-  `reviewer_id` int(11) NOT NULL,
-  `reviewee_id` int(11) NOT NULL,
-  `rating` tinyint(4) NOT NULL,
-  `comment` text DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uniq_trade_reviewer` (`trade_id`,`reviewer_id`),
-  KEY `idx_reviewee_created` (`reviewee_id`,`created_at`),
-  CONSTRAINT `fk_reviews_trade` FOREIGN KEY (`trade_id`) REFERENCES `trades` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_reviews_reviewer` FOREIGN KEY (`reviewer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_reviews_reviewee` FOREIGN KEY (`reviewee_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `chk_reviews_no_self` CHECK (`reviewer_id` <> `reviewee_id`),
-  CONSTRAINT `chk_reviews_rating` CHECK (`rating` between 1 and 5)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `reviews`
---
-
-LOCK TABLES `reviews` WRITE;
-/*!40000 ALTER TABLE `reviews` DISABLE KEYS */;
-/*!40000 ALTER TABLE `reviews` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -387,6 +425,68 @@ INSERT INTO `users` VALUES
 UNLOCK TABLES;
 
 --
+-- Table structure for table `withdrawal_jobs`
+--
+
+DROP TABLE IF EXISTS `withdrawal_jobs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `withdrawal_jobs` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `withdrawal_id` int(11) NOT NULL,
+  `status` enum('queued','processing','done','failed') NOT NULL DEFAULT 'queued',
+  `attempts` int(11) NOT NULL DEFAULT 0,
+  `last_error` varchar(255) DEFAULT NULL,
+  `run_after` datetime NOT NULL DEFAULT current_timestamp(),
+  `locked_at` datetime DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_withdrawal_job` (`withdrawal_id`),
+  KEY `idx_jobs_status_run_after` (`status`,`run_after`),
+  CONSTRAINT `fk_jobs_withdrawal` FOREIGN KEY (`withdrawal_id`) REFERENCES `withdrawals` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `withdrawal_jobs`
+--
+
+LOCK TABLES `withdrawal_jobs` WRITE;
+/*!40000 ALTER TABLE `withdrawal_jobs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `withdrawal_jobs` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `withdrawal_policy`
+--
+
+DROP TABLE IF EXISTS `withdrawal_policy`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `withdrawal_policy` (
+  `id` tinyint(3) unsigned NOT NULL,
+  `max_per_tx` decimal(20,12) NOT NULL,
+  `max_per_day` decimal(20,12) NOT NULL,
+  `min_account_age_hours` int(11) NOT NULL DEFAULT 24,
+  `password_change_cooldown_hours` int(11) NOT NULL DEFAULT 24,
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `withdrawal_policy`
+--
+
+LOCK TABLES `withdrawal_policy` WRITE;
+/*!40000 ALTER TABLE `withdrawal_policy` DISABLE KEYS */;
+INSERT INTO `withdrawal_policy` VALUES
+(1,2.000000000000,10.000000000000,24,24,'2026-02-12 21:17:48');
+/*!40000 ALTER TABLE `withdrawal_policy` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `withdrawals`
 --
 
@@ -398,11 +498,22 @@ CREATE TABLE `withdrawals` (
   `user_id` int(11) NOT NULL,
   `address` varchar(120) NOT NULL,
   `amount` decimal(20,12) NOT NULL,
+  `priority` enum('slow','medium','fast') NOT NULL DEFAULT 'medium',
+  `estimated_fee` decimal(20,12) DEFAULT NULL,
+  `actual_fee` decimal(20,12) DEFAULT NULL,
   `txid` varchar(100) DEFAULT NULL,
-  `status` enum('pending','broadcast','confirmed','failed') NOT NULL DEFAULT 'pending',
+  `idempotency_key` varchar(64) DEFAULT NULL,
+  `status` enum('pending','broadcasted','confirmed','failed') NOT NULL DEFAULT 'pending',
+  `confirmations` int(11) NOT NULL DEFAULT 0,
+  `failure_reason` varchar(255) DEFAULT NULL,
+  `broadcasted_at` datetime DEFAULT NULL,
+  `confirmed_at` datetime DEFAULT NULL,
+  `failed_at` datetime DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `txid` (`txid`),
+  UNIQUE KEY `uniq_withdrawals_idempotency` (`idempotency_key`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `fk_withdrawals_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -426,4 +537,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-02-01  5:34:43
+-- Dump completed on 2026-02-12 21:20:47

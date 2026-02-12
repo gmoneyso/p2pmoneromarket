@@ -130,9 +130,9 @@ $paymentExplorer = $payment ? explorer_tx_url((string)$payment['crypto'], (strin
         <?php elseif ($ctx['canConfirm']): ?>
             <div class="trade-panel">
                 <p>Buyer <strong><?= htmlspecialchars($ctx['counterparty']) ?></strong> marked payment as sent (awaiting your confirmation).</p>
-                <form method="post" action="/trade/confirm_release.php" class="trade-action-form">
+                <form method="post" action="/trade/confirm_release.php" class="trade-action-form" id="releaseForm">
                     <input type="hidden" name="trade_id" value="<?= (int)$trade['id'] ?>">
-                    <button type="submit">Confirm Payment Received</button>
+                    <button type="button" onclick="openReleaseModal()">Confirm Payment Received</button>
                 </form>
             </div>
 
@@ -171,6 +171,37 @@ $paymentExplorer = $payment ? explorer_tx_url((string)$payment['crypto'], (strin
         <?php endif; ?>
     </section>
 </div>
+
+
+<?php if ($ctx['canConfirm']): ?>
+<div id="releaseModal" class="modal hidden">
+    <div class="card modal-card">
+        <h3>Release Escrow</h3>
+        <p>Releasing Monero to <strong><?= htmlspecialchars($ctx['counterparty']) ?></strong> for this trade.</p>
+        <p>
+            Live trade rate:
+            <strong>1 XMR = <?= number_format((float)$trade['final_price'], 8) ?> <?= strtoupper((string)$trade['crypto_pay']) ?></strong>
+        </p>
+        <div class="modal-actions">
+            <button class="btn" type="button" onclick="closeReleaseModal()">Cancel</button>
+            <button class="btn danger" type="button" onclick="confirmReleaseAction()">Release XMR</button>
+        </div>
+    </div>
+</div>
+<script>
+function openReleaseModal() {
+    document.getElementById('releaseModal').classList.remove('hidden');
+}
+
+function closeReleaseModal() {
+    document.getElementById('releaseModal').classList.add('hidden');
+}
+
+function confirmReleaseAction() {
+    document.getElementById('releaseForm').submit();
+}
+</script>
+<?php endif; ?>
 
 <?php if ($hasCountdown): ?>
 <script>

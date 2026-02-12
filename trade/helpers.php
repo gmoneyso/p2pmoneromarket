@@ -60,6 +60,53 @@ function trade_latest_payment(PDO $pdo, int $tradeId): ?array
     return $row ?: null;
 }
 
+
+function trade_normalize_passphrase(string $passphrase): string
+{
+    $trimmed = trim($passphrase);
+    if ($trimmed === '') {
+        return '';
+    }
+
+    // Backup flow presents grouped passphrases (e.g. "ABCD EFGH ...")
+    // while hashing historically used raw lowercase hex. Normalize user input
+    // to the raw canonical shape before verification.
+    $collapsed = preg_replace('/[\s-]+/', '', $trimmed);
+    if ($collapsed === null) {
+        return $trimmed;
+    }
+
+    return strtolower($collapsed);
+}
+
+function trade_verify_passphrase(PDO $pdo, int $userId, string $passphrase): bool
+{
+    $raw = trim($passphrase);
+    if ($raw === '') {
+        return false;
+    }
+
+    $stmt = $pdo->prepare("SELECT recovery_code_hash FROM users WHERE id = ? LIMIT 1");
+    $stmt->execute([$userId]);
+    $hash = (string)($stmt->fetchColumn() ?: '');
+
+    if ($hash === '') {
+        return false;
+    }
+
+    // Keep legacy compatibility: try exact input first, then canonicalized form.
+    if (password_verify($raw, $hash)) {
+        return true;
+    }
+
+    $normalized = trade_normalize_passphrase($raw);
+    if ($normalized !== '' && $normalized !== $raw) {
+        return password_verify($normalized, $hash);
+    }
+
+    return false;
+}
+
 function trade_platform_fee_user_id(PDO $pdo): int
 {
     static $cached = null;

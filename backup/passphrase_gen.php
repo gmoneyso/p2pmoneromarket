@@ -65,16 +65,11 @@ TXT;
 $rawPassphrase = bin2hex(random_bytes(24));
 
 /* -----------------------------
- * 3) Format passphrase
- * ----------------------------- */
-$formatted = strtoupper(implode(' ', str_split($rawPassphrase, 4)));
-
-/* -----------------------------
- * 4) Write username_backup.txt
+ * 3) Write username_backup.txt
  * ----------------------------- */
 $content  = $notice;
 $content .= "RECOVERY PASSPHRASE:\n";
-$content .= $formatted . "\n";
+$content .= $rawPassphrase . "\n";
 
 file_put_contents($backupFile, $content);
 chmod($backupFile, 0600);

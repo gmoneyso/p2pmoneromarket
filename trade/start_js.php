@@ -61,9 +61,11 @@ function openStartTradeModal() {
         }
     }
 
-    const verb = (actionEl?.value || 'Start');
-    document.getElementById('startTradeText').textContent =
-        verb + ' Monero with <?= htmlspecialchars($ad['username']) ?> at your locked rate.';
+    const action = (actionEl?.value || 'Start').toLowerCase();
+    const phrase = action === 'buy'
+        ? 'Buying Monero from <?= htmlspecialchars($ad['username']) ?> at your locked rate.'
+        : 'Selling Monero to <?= htmlspecialchars($ad['username']) ?> at your locked rate.';
+    document.getElementById('startTradeText').textContent = phrase;
 
     document.getElementById('startTradeModal').classList.remove('hidden');
 }

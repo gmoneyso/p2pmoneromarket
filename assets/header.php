@@ -32,6 +32,11 @@ $is_logged_in = isset($_SESSION['user_id']);
                 <span class="text">Profile</span>
             </a>
 
+            <a href="/trade/disputes.php" class="nav-item" title="Disputes">
+                <span class="icon" aria-hidden="true">⚖️</span>
+                <span class="text">Disputes</span>
+            </a>
+
             <a href="/logout.php" class="nav-item danger" title="Logout">
                 <span class="icon" aria-hidden="true">⏻</span>
                 <span class="text">Logout</span>
@@ -52,3 +57,11 @@ $is_logged_in = isset($_SESSION['user_id']);
         <?php endif; ?>
     </nav>
 </header>
+
+<footer class="site-footer-global">
+    <span>MoneroMarket</span>
+    <span aria-hidden="true">•</span>
+    <a href="/backup/recovery.php">Recovery</a>
+    <span aria-hidden="true">•</span>
+    <a href="/canary.php">Canary</a>
+</footer>

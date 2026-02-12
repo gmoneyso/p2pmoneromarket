@@ -384,3 +384,37 @@ button:hover,
         padding: 22px;
     }
 }
+
+/* ===============================
+   Global Footer
+   =============================== */
+.site-footer-global {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 998;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    background: rgba(8, 8, 8, 0.94);
+    border-top: 1px solid var(--border-soft);
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.site-footer-global a {
+    color: #f6c945;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.site-footer-global a:hover {
+    text-decoration: underline;
+}
+
+body {
+    padding-bottom: 46px;
+}
