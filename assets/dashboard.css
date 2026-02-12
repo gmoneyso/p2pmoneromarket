@@ -307,3 +307,69 @@
     text-align: center;
     opacity: 0.8;
 }
+
+.dash-icon-bell {
+    position: relative;
+}
+
+.notif-badge {
+    position: absolute;
+    top: -4px;
+    right: -6px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: #f6c945;
+    color: #111;
+    font-size: 11px;
+    line-height: 16px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.notifications-preview-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.notifications-preview-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.notification-row {
+    display: block;
+    border: 1px solid #222;
+    border-radius: 8px;
+    background: #101010;
+    padding: 10px;
+    color: #ddd;
+    text-decoration: none;
+}
+
+.notification-row.unread {
+    border-color: #f6c945;
+    background: #14120b;
+}
+
+.notification-row strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #f4f4f4;
+}
+
+.notification-row span {
+    display: block;
+    font-size: .9rem;
+    margin-bottom: 4px;
+}
+
+.notification-row small {
+    color: #9a9a9a;
+    font-size: .8rem;
+}

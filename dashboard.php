@@ -60,6 +60,7 @@ $backup_completed = ((int)$user['backup_completed'] === 1);
         <!-- Full dashboard unlocked -->
 
         <?php include __DIR__ . '/modules/topbar.php'; ?>
+        <?php include __DIR__ . '/modules/notifications_preview.php'; ?>
         <?php include __DIR__ . '/modules/balance.php'; ?>
         <?php include __DIR__ . '/modules/subaddresses.php'; ?>
         <?php include __DIR__ . '/modules/reviews.php'; ?>
