@@ -37,6 +37,11 @@ $latest = $stmt->fetch(PDO::FETCH_ASSOC);
             Generate new address
         </a>
 
+
+        <a href="/wallet/withdraw.php" class="btn">
+            Withdraw XMR
+        </a>
+
         <a href="/wallet/addresses.php" class="link">
             View all addresses →
         </a>

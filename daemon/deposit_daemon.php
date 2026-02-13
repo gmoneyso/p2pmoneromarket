@@ -13,6 +13,8 @@ while (true) {
     try {
         require __DIR__ . '/transfer_scanner.php';
         require __DIR__ . '/confirmation_tracker.php';
+        require __DIR__ . '/withdrawal_processor.php';
+        require __DIR__ . '/withdrawal_confirmation_tracker.php';
     } catch (Throwable $e) {
         echo "[error] {$e->getMessage()}\n";
     }
