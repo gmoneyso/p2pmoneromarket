@@ -101,3 +101,20 @@ function wallet_send_xmr(string $address, float $amountXmr, string $priority = '
         'height' => (int)($res['result']['tx_key'] ?? 0),
     ];
 }
+
+function wallet_get_transfer_by_txid(string $txid): ?array
+{
+    if ($txid === '') {
+        return null;
+    }
+
+    $res = wallet_rpc_call([
+        'jsonrpc' => '2.0',
+        'id' => 'withdraw-get',
+        'method' => 'get_transfer_by_txid',
+        'params' => ['txid' => $txid],
+    ]);
+
+    $transfer = $res['result']['transfer'] ?? null;
+    return is_array($transfer) ? $transfer : null;
+}

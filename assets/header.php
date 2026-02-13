@@ -2,6 +2,16 @@
 declare(strict_types=1);
 
 $is_logged_in = isset($_SESSION['user_id']);
+$headerUnreadNotifications = 0;
+if ($is_logged_in && isset($pdo) && $pdo instanceof PDO) {
+    try {
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0");
+        $stmt->execute([(int)$_SESSION['user_id']]);
+        $headerUnreadNotifications = (int)$stmt->fetchColumn();
+    } catch (Throwable $e) {
+        $headerUnreadNotifications = 0;
+    }
+}
 ?>
 
 <header class="site-header">
@@ -32,9 +42,12 @@ $is_logged_in = isset($_SESSION['user_id']);
                 <span class="text">Profile</span>
             </a>
 
-            <a href="/trade/disputes.php" class="nav-item" title="Disputes">
-                <span class="icon" aria-hidden="true">⚖️</span>
-                <span class="text">Disputes</span>
+            <a href="/notifications.php" class="nav-item nav-item-bell" title="Notifications">
+                <span class="icon" aria-hidden="true">🔔</span>
+                <span class="text">Notifications</span>
+                <?php if ($headerUnreadNotifications > 0): ?>
+                    <span class="nav-badge"><?= $headerUnreadNotifications > 99 ? '99+' : $headerUnreadNotifications ?></span>
+                <?php endif; ?>
             </a>
 
             <a href="/logout.php" class="nav-item danger" title="Logout">

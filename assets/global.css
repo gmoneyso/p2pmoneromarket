@@ -418,3 +418,23 @@ button:hover,
 body {
     padding-bottom: 46px;
 }
+
+.nav-item-bell {
+    position: relative;
+}
+
+.nav-badge {
+    position: absolute;
+    top: -4px;
+    right: -6px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: #f6c945;
+    color: #111;
+    font-size: 11px;
+    line-height: 16px;
+    text-align: center;
+    font-weight: 700;
+}

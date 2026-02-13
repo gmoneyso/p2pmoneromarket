@@ -159,10 +159,9 @@ CREATE TABLE `listings` (
 LOCK TABLES `listings` WRITE;
 /*!40000 ALTER TABLE `listings` DISABLE KEYS */;
 INSERT INTO `listings` VALUES
-(2,2,'buy','usdt',0.500,1.000000000000,10.000000000000,10,'ltcguyx fr4gh99r45g6yhi88hh4467jjgr45hh7jht4',NULL,NULL,NULL,'active','2026-01-28 07:58:27'),
 (3,2,'buy','bch',1.000,1.000000000000,10.000000000000,10,'ltcdf56tffttyuhbhrdse5578ikmfdsee45f6un8n8bfe35uj',NULL,NULL,NULL,'active','2026-01-28 07:59:17'),
 (4,1,'buy','btc',0.300,8.000000000000,25.000000000000,10,'btcvfdtyhjikiokny67h78ihy55fgy7u88ij',NULL,NULL,NULL,'active','2026-01-28 15:57:54'),
-(6,2,'sell','link',1.000,0.001000000000,0.002000000000,10,'linkdhshdjcjdiaiajnxjoekjdjcndjnd','0xSellerReceiveLinkAddressSample',NULL,NULL,'active','2026-01-30 05:50:27');
+(6,2,'sell','dot',1.000,0.001000000000,0.002000000000,10,'linkdhshdjcjdiaiajnxjoekjdjcndjnd','0xSellerReceiveLinkAddressSample',NULL,NULL,'active','2026-01-30 05:50:27');
 /*!40000 ALTER TABLE `listings` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -202,7 +201,7 @@ CREATE TABLE `notifications` (
 LOCK TABLES `notifications` WRITE;
 /*!40000 ALTER TABLE `notifications` DISABLE KEYS */;
 INSERT INTO `notifications` VALUES
-(1,2,'withdrawal_pending','Withdrawal request created','Your withdrawal request has been queued for broadcast.','withdrawal',1,NULL,0,NULL,NULL,'2026-02-13 10:51:31','2026-02-13 10:51:31');
+(1,2,'withdrawal_pending','Withdrawal request created','Your withdrawal request has been queued for broadcast.','withdrawal',1,NULL,1,'2026-02-13 12:12:38',NULL,'2026-02-13 10:51:31','2026-02-13 12:12:38');
 /*!40000 ALTER TABLE `notifications` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -542,4 +541,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-02-13 11:34:02
+-- Dump completed on 2026-02-13 18:54:18
