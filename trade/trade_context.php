@@ -31,6 +31,9 @@ if ($role === null) {
 $counterparty = $role === 'buyer'
     ? $trade['seller_name']
     : $trade['buyer_name'];
+$counterpartyId = $role === 'buyer'
+    ? (int)$trade['seller_id']
+    : (int)$trade['buyer_id'];
 
 $status = (string)$trade['status'];
 $canPay = $role === 'buyer' && $status === TRADE_STATUS_PENDING_PAYMENT;
@@ -43,6 +46,7 @@ return [
     'userId'       => $userId,
     'role'         => $role,
     'counterparty' => $counterparty,
+    'counterparty_id' => $counterpartyId,
     'canPay'       => $canPay,
     'canConfirm'   => $canConfirm,
     'canCancel'    => $canCancel,

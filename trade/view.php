@@ -72,6 +72,12 @@ $paymentExplorer = $payment ? explorer_tx_url((string)$payment['crypto'], (strin
             <span class="trade-badge trade-status-<?= htmlspecialchars($status) ?>"><?= htmlspecialchars(strtoupper(str_replace('_', ' ', $status))) ?></span>
         </div>
 
+        <div class="trade-note">
+            <a class="trade-link" href="/messages.php?user_id=<?= (int)$ctx['counterparty_id'] ?>&trade_id=<?= (int)$trade['id'] ?>">
+                Message <?= htmlspecialchars((string)$ctx['counterparty']) ?>
+            </a>
+        </div>
+
         <?php if ($hasCountdown): ?>
             <div class="trade-timer-box" data-trade-id="<?= (int)$trade['id'] ?>">
                 <p>

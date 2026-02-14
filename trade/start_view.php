@@ -11,6 +11,10 @@ function render_trade_start_view(array $ad, string $role): void
     <strong><?= htmlspecialchars($ad['username']) ?></strong>
 </h2>
 
+<p class="trade-note">
+    <a class="trade-link" href="/messages.php?user_id=<?= (int)$ad['user_id'] ?>">Message <?= htmlspecialchars($ad['username']) ?></a>
+</p>
+
 <p class="trade-limits">
     Limits: <?= rtrim($ad['min_xmr'], '0.') ?> – <?= rtrim($ad['max_xmr'], '0.') ?> XMR
 </p>

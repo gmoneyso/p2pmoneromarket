@@ -25,6 +25,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $pdo->prepare("\n            UPDATE users\n            SET pgp_public = NULL,\n                recovery_code_hash = NULL,\n                backup_completed = 0\n            WHERE id = :uid\n        ");
         $stmt->execute([':uid' => (int)$user['id']]);
 
+        $stmt = $pdo->prepare('UPDATE message_unlock_sessions SET revoked_at = NOW() WHERE user_id = :uid AND revoked_at IS NULL');
+        $stmt->execute([':uid' => (int)$user['id']]);
+
+        $stmt = $pdo->prepare('DELETE FROM message_unlock_attempts WHERE user_id = :uid');
+        $stmt->execute([':uid' => (int)$user['id']]);
+
+        unset($_SESSION['messages_unlock_token'], $_SESSION['messages_unlock_passphrase'], $_SESSION['messages_unlock_expires_at']);
+
         header('Location: /backup/start.php?recovery=1');
         exit;
     }

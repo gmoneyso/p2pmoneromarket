@@ -78,6 +78,16 @@ if ($profileUser) {
             <h2><?= htmlspecialchars((string)$profileUser['username']) ?></h2>
             <p class="note">Public profile information</p>
 
+            <?php if ($viewerId > 0): ?>
+                <p>
+                    <?php if ($isOwner): ?>
+                        <a class="btn" style="max-width:220px;" href="/messages.php">Open Messages Inbox</a>
+                    <?php else: ?>
+                        <a class="btn" style="max-width:220px;" href="/messages.php?user_id=<?= (int)$profileId ?>">Message <?= htmlspecialchars((string)$profileUser['username']) ?></a>
+                    <?php endif; ?>
+                </p>
+            <?php endif; ?>
+
             <div class="profile-stats">
                 <div class="profile-stat">
                     <span class="profile-stat-label">Reputation</span>
