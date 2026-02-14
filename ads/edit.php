@@ -9,13 +9,15 @@ require_once __DIR__ . '/../db/database.php';
 require_once __DIR__ . '/../ads/fetch_listings.php';
 require_once __DIR__ . '/../config/supported_coins_ade.php';
 require_once __DIR__ . '/../includes/csrf.php';
+require_once __DIR__ . '/../includes/flash.php';
 
 $adId   = (int)($_GET['id'] ?? 0);
 $userId = (int)$_SESSION['user_id'];
 
 if ($adId <= 0) {
-    http_response_code(400);
-    exit('Invalid ad');
+    flash_set('error', 'Ad not found or not yours.');
+    header('Location: /userads.php');
+    exit;
 }
 
 /* Find ad */
@@ -28,8 +30,9 @@ foreach ($ads as $a) {
 }
 
 if (!$ad) {
-    http_response_code(403);
-    exit('Ad not found or not yours');
+    flash_set('error', 'Ad not found or not yours.');
+    header('Location: /userads.php');
+    exit;
 }
 
 $coins = $SUPPORTED_COINS;

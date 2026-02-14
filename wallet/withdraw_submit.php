@@ -6,6 +6,7 @@ require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../db/database.php';
 require_once __DIR__ . '/../modules/backup_guard.php';
 require_once __DIR__ . '/../includes/notifications.php';
+require_once __DIR__ . '/../includes/flash.php';
 require_once __DIR__ . '/rpc.php';
 require_login();
 
@@ -18,15 +19,17 @@ if (!in_array($priority, ['slow', 'medium', 'fast'], true)) {
 }
 
 if ($address === '' || $amount <= 0) {
-    http_response_code(400);
-    exit('Invalid withdrawal request');
+    flash_set('error', 'Invalid withdrawal request.');
+    header('Location: /wallet/withdraw.php');
+    exit;
 }
 
 try {
     $estimatedFee = wallet_estimate_fee_xmr($address, $amount, $priority);
 } catch (Throwable $e) {
-    http_response_code(400);
-    exit('Unable to estimate network fee: ' . $e->getMessage());
+    flash_set('error', 'Unable to estimate network fee right now.');
+    header('Location: /wallet/withdraw.php');
+    exit;
 }
 
 $totalDebit = $amount + $estimatedFee;
@@ -56,12 +59,14 @@ try {
 
     $pdo->commit();
     notify_user($pdo, $userId, 'withdrawal_pending', 'Withdrawal request created', 'Your withdrawal request has been queued for broadcast.', 'withdrawal', $withdrawalId);
+    flash_set('success', 'Withdrawal request submitted.');
     header('Location: /wallet/withdraw.php');
     exit;
 } catch (Throwable $e) {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
-    http_response_code(400);
-    exit($e->getMessage());
+    flash_set('error', 'Insufficient balance for amount + fee.');
+    header('Location: /wallet/withdraw.php');
+    exit;
 }

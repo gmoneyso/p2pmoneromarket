@@ -4,20 +4,23 @@ declare(strict_types=1);
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../db/database.php';
 require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/../includes/flash.php';
 require_login();
 
 $userId = (int)$_SESSION['user_id'];
 $tradeId = (int)($_GET['trade_id'] ?? 0);
 
 if ($tradeId <= 0) {
-    http_response_code(400);
-    exit('Invalid trade');
+    flash_set('error', 'Review unavailable for this trade.');
+    header('Location: /trade/list.php');
+    exit;
 }
 
 $trade = review_load_trade($pdo, $tradeId);
 if (!$trade) {
-    http_response_code(404);
-    exit('Trade not found');
+    flash_set('error', 'Review unavailable for this trade.');
+    header('Location: /trade/list.php');
+    exit;
 }
 
 [$canSubmit, $reason, $revieweeId] = review_can_submit($pdo, $trade, $userId);

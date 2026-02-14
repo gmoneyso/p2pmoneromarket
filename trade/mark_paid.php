@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../db/database.php';
 require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/../includes/flash.php';
 require_login();
 
 $userId  = (int)$_SESSION['user_id'];
@@ -11,13 +12,15 @@ $tradeId = (int)($_POST['trade_id'] ?? 0);
 $txid    = trim((string)($_POST['txid'] ?? ''));
 
 if (!$tradeId) {
-    http_response_code(400);
-    exit('Invalid trade');
+    flash_set('error', 'Invalid trade request.');
+    header('Location: /trade/list.php');
+    exit;
 }
 
 if ($txid === '' || !preg_match('/^[A-Za-z0-9]{16,128}$/', $txid)) {
-    http_response_code(400);
-    exit('Invalid txid format');
+    flash_set('error', 'Invalid TXID format.');
+    header("Location: /trade/view.php?id={$tradeId}");
+    exit;
 }
 
 trade_expire_if_due($pdo, $tradeId);
@@ -88,6 +91,7 @@ try {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
-    http_response_code(400);
-    exit($e->getMessage());
+    flash_set('error', 'Could not mark as paid. Check TXID and trade status.');
+    header("Location: /trade/view.php?id={$tradeId}");
+    exit;
 }

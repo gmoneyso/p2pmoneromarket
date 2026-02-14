@@ -9,6 +9,7 @@ require_login();
 require_once __DIR__ . '/../db/database.php';
 require_once __DIR__ . '/lib/ad_validator.php';
 require_once __DIR__ . '/lib/ad_creator.php';
+require_once __DIR__ . '/../includes/flash.php';
 
 $type = $_POST['type'] ?? '';
 
@@ -24,10 +25,12 @@ try {
         throw new Exception('Invalid ad type');
     }
 
+    flash_set('success', 'Ad created successfully.');
     header('Location: /dashboard.php');
     exit;
 
 } catch (Exception $e) {
-    http_response_code(400);
-    exit($e->getMessage());
+    flash_set('error', 'Could not create ad. Please review your inputs.');
+    header('Location: /ads/create.php');
+    exit;
 }

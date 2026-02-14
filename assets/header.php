@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../includes/flash.php';
+
 $is_logged_in = isset($_SESSION['user_id']);
 $headerUnreadNotifications = 0;
 if ($is_logged_in && isset($pdo) && $pdo instanceof PDO) {
@@ -70,6 +72,11 @@ if ($is_logged_in && isset($pdo) && $pdo instanceof PDO) {
         <?php endif; ?>
     </nav>
 </header>
+
+<div id="toastStack" class="toast-stack" aria-live="polite" aria-atomic="true"></div>
+<?php foreach (flash_take_all() as $flash): ?>
+    <div class="flash-seed" data-type="<?= htmlspecialchars((string)($flash['type'] ?? 'info')) ?>" data-message="<?= htmlspecialchars((string)($flash['message'] ?? '')) ?>" hidden></div>
+<?php endforeach; ?>
 
 <footer class="site-footer-global">
     <span>MoneroMarket</span>

@@ -5,6 +5,7 @@ require_once __DIR__ . '/../db/database.php';
 
 const WALLET_RPC = 'http://127.0.0.1:18083/json_rpc';
 const REQUIRED_CONFIRMATIONS = 10;
+const WITHDRAWAL_CONFIRMATIONS = 1;
 const POLL_INTERVAL = 10;
 
 function rpc(array $payload): array

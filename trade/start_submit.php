@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../db/database.php';
 require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/../includes/flash.php';
 
 require_login();
 
@@ -14,8 +15,9 @@ $xmrAmount = (float)($_POST['xmr_amount'] ?? 0);
 $payinAddressTrade = trim((string)($_POST['payin_address_trade'] ?? ''));
 
 if ($listingId <= 0 || $xmrAmount <= 0) {
-    http_response_code(400);
-    exit('Invalid request');
+    flash_set('error', 'Invalid trade request.');
+    header('Location: /');
+    exit;
 }
 
 $pdo->beginTransaction();
@@ -144,6 +146,12 @@ try {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
-    http_response_code(400);
-    echo $e->getMessage();
+
+    flash_set('error', 'Could not start trade. Please check amount and limits.');
+    if ($listingId > 0) {
+        header('Location: /trade/start.php?ad_id=' . $listingId);
+    } else {
+        header('Location: /');
+    }
+    exit;
 }

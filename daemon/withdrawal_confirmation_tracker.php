@@ -30,7 +30,7 @@ foreach ($rows as $w) {
         }
 
         $confirmations = (int)($transfer['confirmations'] ?? 0);
-        if ($confirmations >= REQUIRED_CONFIRMATIONS) {
+        if ($confirmations >= WITHDRAWAL_CONFIRMATIONS) {
             $pdo->prepare("UPDATE withdrawals SET status = 'confirmed' WHERE id = ? AND status = 'broadcast'")
                 ->execute([$wid]);
             $ownerStmt = $pdo->prepare('SELECT user_id FROM withdrawals WHERE id = ? LIMIT 1');

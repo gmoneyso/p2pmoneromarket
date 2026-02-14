@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../db/database.php';
 require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/../includes/flash.php';
 require_login();
 
 $userId = (int)$_SESSION['user_id'];
@@ -12,18 +13,21 @@ $rating = (int)($_POST['rating'] ?? 0);
 $comment = trim((string)($_POST['comment'] ?? ''));
 
 if ($tradeId <= 0) {
-    http_response_code(400);
-    exit('Invalid trade');
+    flash_set('error', 'Could not submit review. Please check your rating/comment.');
+    header('Location: /trade/list.php');
+    exit;
 }
 
 if ($rating < 1 || $rating > 5) {
-    http_response_code(400);
-    exit('Invalid rating');
+    flash_set('error', 'Could not submit review. Please check your rating/comment.');
+    header('Location: /reviews/start.php?trade_id=' . $tradeId);
+    exit;
 }
 
 if (strlen($comment) > 1000) {
-    http_response_code(400);
-    exit('Comment too long');
+    flash_set('error', 'Could not submit review. Please check your rating/comment.');
+    header('Location: /reviews/start.php?trade_id=' . $tradeId);
+    exit;
 }
 
 $pdo->beginTransaction();
@@ -49,6 +53,7 @@ try {
     ]);
 
     $pdo->commit();
+    flash_set('success', 'Review submitted successfully.');
     header('Location: /dashboard.php');
     exit;
 
@@ -56,6 +61,7 @@ try {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
-    http_response_code(400);
-    exit($e->getMessage());
+    flash_set('error', 'Could not submit review. Please check your rating/comment.');
+    header('Location: /reviews/start.php?trade_id=' . $tradeId);
+    exit;
 }

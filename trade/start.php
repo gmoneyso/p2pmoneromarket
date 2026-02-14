@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../db/database.php';
+require_once __DIR__ . '/../includes/flash.php';
 require_login();
 
 require_once __DIR__ . '/start_ad.php';
@@ -10,19 +11,22 @@ require_once __DIR__ . '/start_ad.php';
 $ad_id = (int)($_GET['ad_id'] ?? 0);
 
 if (!$ad_id) {
-    http_response_code(400);
-    exit('Invalid trade request');
+    flash_set('error', 'Invalid trade request.');
+    header('Location: /');
+    exit;
 }
 
 $ad = fetch_trade_ad($pdo, $ad_id);
 if (!$ad) {
-    http_response_code(404);
-    exit('Ad not found or inactive');
+    flash_set('error', 'This ad is unavailable.');
+    header('Location: /');
+    exit;
 }
 
 if ((int)$ad['user_id'] === (int)$_SESSION['user_id']) {
-    http_response_code(403);
-    exit('You cannot trade with your own ad');
+    flash_set('error', "Hey, that's your ad.");
+    header('Location: /');
+    exit;
 }
 
 $role = $ad['type'] === 'sell' ? 'buyer' : 'seller';

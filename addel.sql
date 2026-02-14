@@ -62,7 +62,7 @@ CREATE TABLE `balance_ledger` (
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `fk_ledger_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -75,7 +75,8 @@ INSERT INTO `balance_ledger` VALUES
 (1,2,'deposit',1,0.001000000000,'credit','unlocked',0.001000000000,'2026-01-26 06:57:14'),
 (2,2,'deposit',2,0.001653922900,'credit','unlocked',0.002653922900,'2026-01-26 06:57:14'),
 (3,1,'deposit',3,0.001000000000,'credit','unlocked',0.001000000000,'2026-01-26 07:17:05'),
-(4,2,'withdrawal',1,0.000822400000,'debit','unlocked',0.001831522900,'2026-02-13 10:51:31');
+(4,2,'withdrawal',1,0.000822400000,'debit','unlocked',0.001831522900,'2026-02-13 10:51:31'),
+(5,2,'withdrawal',1,0.000822400000,'credit','unlocked',0.002653922900,'2026-02-14 06:43:36');
 /*!40000 ALTER TABLE `balance_ledger` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -191,7 +192,7 @@ CREATE TABLE `notifications` (
   KEY `idx_notifications_user_created` (`user_id`,`created_at`),
   KEY `idx_notifications_user_read` (`user_id`,`is_read`),
   CONSTRAINT `fk_notifications_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -201,7 +202,8 @@ CREATE TABLE `notifications` (
 LOCK TABLES `notifications` WRITE;
 /*!40000 ALTER TABLE `notifications` DISABLE KEYS */;
 INSERT INTO `notifications` VALUES
-(1,2,'withdrawal_pending','Withdrawal request created','Your withdrawal request has been queued for broadcast.','withdrawal',1,NULL,1,'2026-02-13 12:12:38',NULL,'2026-02-13 10:51:31','2026-02-13 12:12:38');
+(1,2,'withdrawal_pending','Withdrawal request created','Your withdrawal request has been queued for broadcast.','withdrawal',1,NULL,1,'2026-02-13 12:12:38',NULL,'2026-02-13 10:51:31','2026-02-13 12:12:38'),
+(2,2,'withdrawal_failed','Withdrawal failed','Withdrawal could not be broadcast. Reserved balance has been restored.','withdrawal',1,NULL,1,'2026-02-14 06:44:32',NULL,'2026-02-14 06:43:36','2026-02-14 06:44:32');
 /*!40000 ALTER TABLE `notifications` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -528,7 +530,7 @@ CREATE TABLE `withdrawals` (
 LOCK TABLES `withdrawals` WRITE;
 /*!40000 ALTER TABLE `withdrawals` DISABLE KEYS */;
 INSERT INTO `withdrawals` VALUES
-(1,2,'84DoCKB8q5xRMsRqJ4B2eChTGaCFhpVnfA8ejGCHvoxWaUxRbcNYoy4cngAruTH1XJAGUFf8dLHLSLqbcFtKzNVB74szDNi',0.000700000000,'medium',NULL,NULL,NULL,NULL,'pending',0,NULL,NULL,NULL,NULL,'2026-02-13 10:51:31','2026-02-13 10:51:31');
+(1,2,'84DoCKB8q5xRMsRqJ4B2eChTGaCFhpVnfA8ejGCHvoxWaUxRbcNYoy4cngAruTH1XJAGUFf8dLHLSLqbcFtKzNVB74szDNi',0.000700000000,'medium',NULL,NULL,NULL,NULL,'failed',0,NULL,NULL,NULL,NULL,'2026-02-13 10:51:31','2026-02-14 06:43:36');
 /*!40000 ALTER TABLE `withdrawals` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -541,4 +543,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-02-13 18:54:18
+-- Dump completed on 2026-02-14  9:29:15
