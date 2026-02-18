@@ -35,7 +35,7 @@ $stmt = $pdo->prepare("
         COALESCE((
             SELECT SUM(l.amount)
             FROM balance_ledger l
-            WHERE l.user_id = :uid
+            WHERE l.user_id = ?
               AND l.related_type = 'escrow_lock'
               AND l.status = 'locked'
         ), 0)
@@ -43,7 +43,7 @@ $stmt = $pdo->prepare("
         COALESCE((
             SELECT SUM(r.amount)
             FROM balance_ledger r
-            WHERE r.user_id = :uid
+            WHERE r.user_id = ?
               AND r.related_type = 'escrow_release'
               AND EXISTS (
                   SELECT 1
@@ -56,7 +56,7 @@ $stmt = $pdo->prepare("
         0
     ) AS locked_balance
 ");
-$stmt->execute([':uid' => $userId]);
+$stmt->execute([$userId, $userId]);
 $lockedBalance = (float)$stmt->fetchColumn();
 
 /* -----------------------------
