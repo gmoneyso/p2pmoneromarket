@@ -322,6 +322,16 @@
     color: #fcd34d;
 }
 
+.trade-status-dispute_resolved_buyer {
+    background: #123327;
+    color: #86efac;
+}
+
+.trade-status-dispute_resolved_seller {
+    background: #332012;
+    color: #fca5a5;
+}
+
 .modal {
     position: fixed;
     inset: 0;

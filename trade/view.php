@@ -4,17 +4,12 @@ declare(strict_types=1);
 $ctx = require __DIR__ . '/trade_context.php';
 $trade = $ctx['trade'];
 $status = (string)$trade['status'];
-$isTerminal = in_array($status, [
-    TRADE_STATUS_RELEASED,
-    TRADE_STATUS_CANCELLED,
-    TRADE_STATUS_EXPIRED,
-    TRADE_STATUS_DISPUTED,
-], true);
+$isTerminal = trade_is_terminal($status);
 $hasCountdown = $status === TRADE_STATUS_PENDING_PAYMENT;
 $payment = trade_latest_payment($pdo, (int)$trade['id']);
 
 $viewerHasReview = false;
-if ($status === TRADE_STATUS_RELEASED) {
+if (in_array($status, [TRADE_STATUS_RELEASED, TRADE_STATUS_DISPUTE_RESOLVED_BUYER, TRADE_STATUS_DISPUTE_RESOLVED_SELLER], true)) {
     $viewerHasReview = trade_user_has_review($pdo, (int)$trade['id'], (int)$ctx['userId']);
 }
 
@@ -63,8 +58,8 @@ $paymentExplorer = $payment ? explorer_tx_url((string)$payment['crypto'], (strin
             <a class="trade-link" href="/trade/list.php">Back to Trades</a>
         </div>
 
-        <?php if ($status === TRADE_STATUS_RELEASED): ?>
-            <div class="trade-complete-banner">✅ COMPLETE — Trade released successfully</div>
+        <?php if (in_array($status, [TRADE_STATUS_RELEASED, TRADE_STATUS_DISPUTE_RESOLVED_BUYER, TRADE_STATUS_DISPUTE_RESOLVED_SELLER], true)): ?>
+            <div class="trade-complete-banner">✅ COMPLETE — Trade finalized successfully</div>
         <?php endif; ?>
 
         <div class="trade-summary-row">
@@ -72,11 +67,13 @@ $paymentExplorer = $payment ? explorer_tx_url((string)$payment['crypto'], (strin
             <span class="trade-badge trade-status-<?= htmlspecialchars($status) ?>"><?= htmlspecialchars(strtoupper(str_replace('_', ' ', $status))) ?></span>
         </div>
 
+        <?php if ((int)$ctx['counterparty_id'] > 0): ?>
         <div class="trade-note">
             <a class="trade-link" href="/messages.php?user_id=<?= (int)$ctx['counterparty_id'] ?>&trade_id=<?= (int)$trade['id'] ?>">
                 Message <?= htmlspecialchars((string)$ctx['counterparty']) ?>
             </a>
         </div>
+        <?php endif; ?>
 
         <?php if ($hasCountdown): ?>
             <div class="trade-timer-box" data-trade-id="<?= (int)$trade['id'] ?>">
@@ -99,7 +96,7 @@ $paymentExplorer = $payment ? explorer_tx_url((string)$payment['crypto'], (strin
             </div>
         <?php endif; ?>
 
-        <?php if ($status === TRADE_STATUS_RELEASED): ?>
+        <?php if (in_array($status, [TRADE_STATUS_RELEASED, TRADE_STATUS_DISPUTE_RESOLVED_BUYER, TRADE_STATUS_DISPUTE_RESOLVED_SELLER], true)): ?>
             <?php if (!$viewerHasReview): ?>
                 <div class="trade-panel">
                     <p>This trade is complete. You can leave an optional review for your counterparty.</p>
@@ -149,12 +146,36 @@ $paymentExplorer = $payment ? explorer_tx_url((string)$payment['crypto'], (strin
                 <?php elseif ($status === TRADE_STATUS_EXPIRED): ?>
                     Trade expired before payment confirmation.
                 <?php elseif ($status === TRADE_STATUS_DISPUTED): ?>
-                    Trade is currently disputed and pending manual review.
+                    Trade is currently disputed and pending moderator resolution.
+                <?php elseif ($status === TRADE_STATUS_DISPUTE_RESOLVED_BUYER): ?>
+                    Dispute resolved: buyer awarded escrow release.
+                <?php elseif ($status === TRADE_STATUS_DISPUTE_RESOLVED_SELLER): ?>
+                    Dispute resolved: seller refunded escrow.
                 <?php elseif ($status === TRADE_STATUS_RELEASED): ?>
                     Trade completed successfully.
                 <?php else: ?>
                     Waiting for next trade action.
                 <?php endif; ?>
+            </div>
+        <?php endif; ?>
+
+
+
+        <?php if ($ctx['canResolveDispute']): ?>
+            <div class="trade-panel">
+                <p><strong>Moderator Action:</strong> Resolve this dispute in favor of buyer or seller.</p>
+                <div class="trade-actions-row">
+                    <form method="post" action="/trade/resolve_dispute.php" class="trade-action-form">
+                        <input type="hidden" name="trade_id" value="<?= (int)$trade['id'] ?>">
+                        <input type="hidden" name="winner" value="buyer">
+                        <button type="submit" class="btn">Resolve for Buyer</button>
+                    </form>
+                    <form method="post" action="/trade/resolve_dispute.php" class="trade-action-form">
+                        <input type="hidden" name="trade_id" value="<?= (int)$trade['id'] ?>">
+                        <input type="hidden" name="winner" value="seller">
+                        <button type="submit" class="btn danger">Resolve for Seller</button>
+                    </form>
+                </div>
             </div>
         <?php endif; ?>
 
@@ -170,6 +191,7 @@ $paymentExplorer = $payment ? explorer_tx_url((string)$payment['crypto'], (strin
                 <?php if ($ctx['canDispute']): ?>
                     <form method="post" action="/trade/dispute.php" class="trade-action-form">
                         <input type="hidden" name="trade_id" value="<?= (int)$trade['id'] ?>">
+                        <textarea name="reason" maxlength="800" placeholder="Dispute reason (optional, visible to moderator)"></textarea>
                         <button type="submit" class="btn">Open Dispute</button>
                     </form>
                 <?php endif; ?>

@@ -23,33 +23,37 @@ if (!$trade) {
 }
 
 $role = trade_role_for_user($trade, $userId);
-if ($role === null) {
+$isModerator = trade_is_moderator($pdo, $userId);
+if ($role === null && !$isModerator) {
     http_response_code(403);
     exit('Not your trade');
 }
 
 $counterparty = $role === 'buyer'
     ? $trade['seller_name']
-    : $trade['buyer_name'];
+    : ($role === 'seller' ? $trade['buyer_name'] : 'Buyer/Seller');
 $counterpartyId = $role === 'buyer'
     ? (int)$trade['seller_id']
-    : (int)$trade['buyer_id'];
+    : ($role === 'seller' ? (int)$trade['buyer_id'] : 0);
 
 $status = (string)$trade['status'];
 $canPay = $role === 'buyer' && $status === TRADE_STATUS_PENDING_PAYMENT;
 $canConfirm = $role === 'seller' && $status === TRADE_STATUS_PAID;
-$canCancel = in_array($status, [TRADE_STATUS_PENDING_PAYMENT], true);
-$canDispute = in_array($status, [TRADE_STATUS_PAID], true);
+$canCancel = $role !== 'moderator' && in_array($status, [TRADE_STATUS_PENDING_PAYMENT], true);
+$canDispute = $role !== 'moderator' && in_array($status, [TRADE_STATUS_PAID], true);
+$canResolveDispute = $isModerator && $status === TRADE_STATUS_DISPUTED;
 
 return [
     'trade'        => $trade,
     'userId'       => $userId,
-    'role'         => $role,
+    'role'         => $role ?? 'moderator',
+    'isModerator'  => $isModerator,
     'counterparty' => $counterparty,
     'counterparty_id' => $counterpartyId,
     'canPay'       => $canPay,
     'canConfirm'   => $canConfirm,
     'canCancel'    => $canCancel,
     'canDispute'   => $canDispute,
+    'canResolveDispute' => $canResolveDispute,
     'isWaiting'    => !$canPay && !$canConfirm,
 ];

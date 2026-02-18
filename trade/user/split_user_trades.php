@@ -16,7 +16,11 @@ $ongoingTrades = array_values(array_filter(
 
 $completedTrades = array_values(array_filter(
     $trades,
-    static fn(array $trade): bool => (string)$trade['status'] === TRADE_STATUS_RELEASED
+    static fn(array $trade): bool => in_array((string)$trade['status'], [
+        TRADE_STATUS_RELEASED,
+        TRADE_STATUS_DISPUTE_RESOLVED_BUYER,
+        TRADE_STATUS_DISPUTE_RESOLVED_SELLER,
+    ], true)
 ));
 
 $cancelledTrades = array_values(array_filter(

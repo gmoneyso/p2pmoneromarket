@@ -40,8 +40,8 @@ function review_can_submit(PDO $pdo, array $trade, int $userId): array
         return [false, 'Not your trade', null];
     }
 
-    if ((string)$trade['status'] !== TRADE_STATUS_RELEASED) {
-        return [false, 'You can review only after trade release', null];
+    if (!in_array((string)$trade['status'], [TRADE_STATUS_RELEASED, TRADE_STATUS_DISPUTE_RESOLVED_BUYER, TRADE_STATUS_DISPUTE_RESOLVED_SELLER], true)) {
+        return [false, 'You can review only after trade finalization', null];
     }
 
     if (review_user_has_review($pdo, (int)$trade['id'], $userId)) {
@@ -66,7 +66,7 @@ function review_fetch_received(PDO $pdo, int $userId): array
         INNER JOIN users u ON u.id = r.reviewer_id
         INNER JOIN trades t ON t.id = r.trade_id
         WHERE r.reviewee_id = ?
-          AND t.status = 'released'
+          AND t.status IN ('released','dispute_resolved_buyer','dispute_resolved_seller')
         ORDER BY r.created_at DESC, r.id DESC
     ");
     $stmt->execute([$userId]);
@@ -88,7 +88,7 @@ function review_fetch_given(PDO $pdo, int $userId): array
         INNER JOIN users u ON u.id = r.reviewee_id
         INNER JOIN trades t ON t.id = r.trade_id
         WHERE r.reviewer_id = ?
-          AND t.status = 'released'
+          AND t.status IN ('released','dispute_resolved_buyer','dispute_resolved_seller')
         ORDER BY r.created_at DESC, r.id DESC
     ");
     $stmt->execute([$userId]);

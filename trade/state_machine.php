@@ -7,12 +7,15 @@ const TRADE_STATUS_RELEASED = 'released';
 const TRADE_STATUS_CANCELLED = 'cancelled';
 const TRADE_STATUS_EXPIRED = 'expired';
 const TRADE_STATUS_DISPUTED = 'disputed';
+const TRADE_STATUS_DISPUTE_RESOLVED_BUYER = 'dispute_resolved_buyer';
+const TRADE_STATUS_DISPUTE_RESOLVED_SELLER = 'dispute_resolved_seller';
 
 const TRADE_TERMINAL_STATUSES = [
     TRADE_STATUS_RELEASED,
     TRADE_STATUS_CANCELLED,
     TRADE_STATUS_EXPIRED,
-    TRADE_STATUS_DISPUTED,
+    TRADE_STATUS_DISPUTE_RESOLVED_BUYER,
+    TRADE_STATUS_DISPUTE_RESOLVED_SELLER,
 ];
 
 function trade_allowed_transitions(): array
@@ -30,7 +33,12 @@ function trade_allowed_transitions(): array
         TRADE_STATUS_RELEASED => [],
         TRADE_STATUS_CANCELLED => [],
         TRADE_STATUS_EXPIRED => [],
-        TRADE_STATUS_DISPUTED => [],
+        TRADE_STATUS_DISPUTED => [
+            TRADE_STATUS_DISPUTE_RESOLVED_BUYER,
+            TRADE_STATUS_DISPUTE_RESOLVED_SELLER,
+        ],
+        TRADE_STATUS_DISPUTE_RESOLVED_BUYER => [],
+        TRADE_STATUS_DISPUTE_RESOLVED_SELLER => [],
     ];
 }
 

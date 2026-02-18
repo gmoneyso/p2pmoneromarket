@@ -307,3 +307,130 @@ function trade_user_has_review(PDO $pdo, int $tradeId, int $userId): bool
 
     return (bool)$stmt->fetchColumn();
 }
+
+function trade_is_moderator(PDO $pdo, int $userId): bool
+{
+    $stmt = $pdo->prepare("SELECT username FROM users WHERE id = ? LIMIT 1");
+    $stmt->execute([$userId]);
+    $username = (string)($stmt->fetchColumn() ?: '');
+
+    return $username === 'Habibi';
+}
+
+function trade_open_dispute(PDO $pdo, array $trade, int $openedByUserId, ?string $reason = null): void
+{
+    $tradeId = (int)$trade['id'];
+
+    trade_set_status(
+        $pdo,
+        $tradeId,
+        TRADE_STATUS_PAID,
+        TRADE_STATUS_DISPUTED
+    );
+
+    $reason = trim((string)$reason);
+    if ($reason === '') {
+        $reason = 'Trade marked as disputed by participant.';
+    }
+
+    $stmt = $pdo->prepare("\n        INSERT INTO trade_disputes (trade_id, opened_by_user_id, status, reason_text, opened_at, updated_at)\n        VALUES (?, ?, 'open', ?, NOW(), NOW())\n        ON DUPLICATE KEY UPDATE\n            opened_by_user_id = VALUES(opened_by_user_id),\n            status = 'open',\n            reason_text = VALUES(reason_text),\n            updated_at = NOW()\n    ");
+    $stmt->execute([$tradeId, $openedByUserId, $reason]);
+
+    $disputeId = (int)$pdo->lastInsertId();
+    if ($disputeId <= 0) {
+        $idStmt = $pdo->prepare("SELECT id FROM trade_disputes WHERE trade_id = ? LIMIT 1");
+        $idStmt->execute([$tradeId]);
+        $disputeId = (int)($idStmt->fetchColumn() ?: 0);
+    }
+
+    if ($disputeId > 0) {
+        $evt = $pdo->prepare("\n            INSERT INTO trade_dispute_events (dispute_id, actor_user_id, event_type, note, created_at)\n            VALUES (?, ?, 'opened', ?, NOW())\n        ");
+        $evt->execute([$disputeId, $openedByUserId, $reason]);
+    }
+}
+
+function trade_resolve_dispute(PDO $pdo, array $trade, int $moderatorUserId, string $winner): void
+{
+    $tradeId = (int)$trade['id'];
+    if ($trade['status'] !== TRADE_STATUS_DISPUTED) {
+        throw new RuntimeException('Trade is not disputed');
+    }
+
+    $winner = strtolower(trim($winner));
+    if (!in_array($winner, ['buyer', 'seller'], true)) {
+        throw new RuntimeException('Invalid dispute winner');
+    }
+
+    $targetStatus = $winner === 'buyer'
+        ? TRADE_STATUS_DISPUTE_RESOLVED_BUYER
+        : TRADE_STATUS_DISPUTE_RESOLVED_SELLER;
+
+    if ($winner === 'buyer') {
+        $buyerId = (int)$trade['buyer_id'];
+        $sellerId = (int)$trade['seller_id'];
+        $xmrAmount = (float)$trade['xmr_amount'];
+        $feeXmr = (float)$trade['fee_xmr'];
+        $platformFeeUserId = trade_platform_fee_user_id($pdo);
+
+        ledger_append(
+            $pdo,
+            $sellerId,
+            'escrow_release',
+            $tradeId,
+            $xmrAmount,
+            'debit',
+            'unlocked'
+        );
+
+        ledger_append(
+            $pdo,
+            $buyerId,
+            'escrow_release',
+            $tradeId,
+            $xmrAmount,
+            'credit',
+            'unlocked'
+        );
+
+        ledger_append(
+            $pdo,
+            $buyerId,
+            'fee',
+            $tradeId,
+            $feeXmr,
+            'debit',
+            'unlocked'
+        );
+
+        ledger_append(
+            $pdo,
+            $platformFeeUserId,
+            'fee',
+            $tradeId,
+            $feeXmr,
+            'credit',
+            'unlocked'
+        );
+    } else {
+        trade_refund_seller_escrow($pdo, $trade);
+    }
+
+    trade_set_status($pdo, $tradeId, TRADE_STATUS_DISPUTED, $targetStatus);
+
+    $stmt = $pdo->prepare("SELECT id FROM trade_disputes WHERE trade_id = ? LIMIT 1");
+    $stmt->execute([$tradeId]);
+    $disputeId = (int)($stmt->fetchColumn() ?: 0);
+
+    if ($disputeId > 0) {
+        $disputeStatus = $winner === 'buyer' ? 'resolved_buyer' : 'resolved_seller';
+        $upd = $pdo->prepare("\n            UPDATE trade_disputes\n            SET status = ?, assigned_moderator_id = ?, resolved_at = NOW(), updated_at = NOW()\n            WHERE id = ?\n        ");
+        $upd->execute([$disputeStatus, $moderatorUserId, $disputeId]);
+
+        $evt = $pdo->prepare("\n            INSERT INTO trade_dispute_events (dispute_id, actor_user_id, event_type, note, created_at)\n            VALUES (?, ?, 'resolved', ?, NOW())\n        ");
+        $evt->execute([
+            $disputeId,
+            $moderatorUserId,
+            $winner === 'buyer' ? 'Dispute resolved in favor of buyer.' : 'Dispute resolved in favor of seller.',
+        ]);
+    }
+}

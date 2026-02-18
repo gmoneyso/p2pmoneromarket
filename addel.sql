@@ -490,7 +490,7 @@ CREATE TABLE `trades` (
   `final_price` decimal(20,12) NOT NULL COMMENT 'Market price after margin applied',
   `crypto_amount` decimal(20,12) NOT NULL COMMENT 'Amount buyer must pay',
   `fee_xmr` decimal(20,12) NOT NULL COMMENT '1% XMR fee paid by buyer',
-  `status` enum('pending_payment','paid','released','cancelled','expired','disputed') NOT NULL DEFAULT 'pending_payment',
+  `status` enum('pending_payment','paid','released','cancelled','expired','disputed','dispute_resolved_buyer','dispute_resolved_seller') NOT NULL DEFAULT 'pending_payment',
   `expires_at` timestamp NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -548,6 +548,75 @@ INSERT INTO `users` VALUES
 (5,'homelander','$argon2id$v=19$m=65536,t=4,p=1$Z2hERDlERDFGUjEyTXRabA$mEdip3qjV/ZX5TSfRjdVEbVGq6igWfCI1a8pn/cPEAg','-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmDMEaXpthxYJKwYBBAHaRw8BAQdAab7jP0PEDGdU+Rsry9nU48fDcLOq8It7d7GP\noO4Yh6W0J2hvbWVsYW5kZXIgPGhvbWVsYW5kZXJAcDJwbW9uZXJvLmxvY2FsPoiT\nBBMWCgA7FiEEz/t3YWPKRWSfR3AX2JySHTqhIY0FAml6bYcCGwMFCwkIBwICIgIG\nFQoJCAsCBBYCAwECHgcCF4AACgkQ2JySHTqhIY0WrwEA+l0Puoz5oDB2+8F41NzR\nHXbuSxO4DqyBRHZdZugoLfgA/jIujwa2QouBMmNuQnGIWeTjtyuHxx5hKyZOMb/v\nXB8IuDgEaXpthxIKKwYBBAGXVQEFAQEHQMz6dEXMuFryM/7i38FEa+62QdgAIzSs\n65r7zLJUbegbAwEIB4h4BBgWCgAgFiEEz/t3YWPKRWSfR3AX2JySHTqhIY0FAml6\nbYcCGwwACgkQ2JySHTqhIY305gD+OItDi71Qgam+2SzrzJ34OHooVRtKY5cLcs8B\nVCu6eDgBAMYoIUqekcjyV4J+W5vObRW41PNozWWj3kJeHFcifKIP\n=mdwj\n-----END PGP PUBLIC KEY BLOCK-----','$2y$10$qLHOVzYhJeSnZRoH5SIeU.W6ZO5yku5SKsL2JEF1zYAkA6S/K3.nS','2026-01-28 20:10:34',1),
 (6,'Champez','$argon2id$v=19$m=65536,t=4,p=1$TzVhOEZmekd0QmdqWnIydQ$09xOfW3v8rk/s6jCbHvXr5UKRh28jxC8UBfz4UaG32Y','-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmDMEaX24SRYJKwYBBAHaRw8BAQdADxiGWKGKiY+3EE4l8Wf2F8yjfShe9JZKRg0Y\ngBcH1qa0IUNoYW1wZXogPENoYW1wZXpAcDJwbW9uZXJvLmxvY2FsPoiTBBMWCgA7\nFiEEysRsk+cUnWClXFTIOTmW5nm9qRkFAml9uEkCGwMFCwkIBwICIgIGFQoJCAsC\nBBYCAwECHgcCF4AACgkQOTmW5nm9qRkQBgD+P/LpmCX6nWFXOFUJV+dyMUfkqXap\nXaWmuyCDRrqQNHwBAIh+pNz/cR4lQmqjzBmkkdzHVL3/6qlNexeOdw6QumQIuDgE\naX24SRIKKwYBBAGXVQEFAQEHQMLevBRApAFZVlTD6S77caVb7jzMbzTF+E9JuhFj\nEt5RAwEIB4h4BBgWCgAgFiEEysRsk+cUnWClXFTIOTmW5nm9qRkFAml9uEkCGwwA\nCgkQOTmW5nm9qRnWWQEAvhzJri74AiHoQ8yoWuXUsGbue2kX5vme9B1jBIbz6VoA\n/10SXOd/wk++J0hz3XDTX0GKTSjLpTc7ywqOuf+HKPAC\n=Jw8m\n-----END PGP PUBLIC KEY BLOCK-----','$2y$10$AVZHl5ddMb/j5JQhF7uuDuPxpK5Kj8nI4h3MitlZ//OapbQL131sO','2026-01-31 08:06:15',1);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `trade_disputes`
+--
+
+DROP TABLE IF EXISTS `trade_disputes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `trade_disputes` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `trade_id` bigint(20) NOT NULL,
+  `opened_by_user_id` int(11) NOT NULL,
+  `assigned_moderator_id` int(11) DEFAULT NULL,
+  `status` enum('open','under_review','resolved_buyer','resolved_seller','closed') NOT NULL DEFAULT 'open',
+  `reason_text` text DEFAULT NULL,
+  `resolution_note` text DEFAULT NULL,
+  `opened_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `resolved_at` datetime DEFAULT NULL,
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_trade_dispute` (`trade_id`),
+  KEY `idx_dispute_status_opened` (`status`,`opened_at`),
+  KEY `idx_dispute_opened_by` (`opened_by_user_id`),
+  KEY `idx_dispute_moderator` (`assigned_moderator_id`),
+  CONSTRAINT `fk_trade_disputes_trade` FOREIGN KEY (`trade_id`) REFERENCES `trades` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_trade_disputes_opened_by` FOREIGN KEY (`opened_by_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_trade_disputes_moderator` FOREIGN KEY (`assigned_moderator_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `trade_disputes`
+--
+
+LOCK TABLES `trade_disputes` WRITE;
+/*!40000 ALTER TABLE `trade_disputes` DISABLE KEYS */;
+/*!40000 ALTER TABLE `trade_disputes` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `trade_dispute_events`
+--
+
+DROP TABLE IF EXISTS `trade_dispute_events`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `trade_dispute_events` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `dispute_id` bigint(20) NOT NULL,
+  `actor_user_id` int(11) DEFAULT NULL,
+  `event_type` varchar(40) NOT NULL,
+  `note` text DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_dispute_events_dispute_created` (`dispute_id`,`created_at`),
+  KEY `idx_dispute_events_actor` (`actor_user_id`),
+  CONSTRAINT `fk_trade_dispute_events_dispute` FOREIGN KEY (`dispute_id`) REFERENCES `trade_disputes` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_trade_dispute_events_actor` FOREIGN KEY (`actor_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `trade_dispute_events`
+--
+
+LOCK TABLES `trade_dispute_events` WRITE;
+/*!40000 ALTER TABLE `trade_dispute_events` DISABLE KEYS */;
+/*!40000 ALTER TABLE `trade_dispute_events` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --

@@ -31,13 +31,32 @@ $availableBalance = (float)$stmt->fetchColumn();
  * Locked escrow balance
  * ----------------------------- */
 $stmt = $pdo->prepare("
-    SELECT COALESCE(SUM(amount), 0)
-    FROM balance_ledger
-    WHERE user_id = ?
-      AND related_type = 'escrow_lock'
-      AND status = 'locked'
+    SELECT GREATEST(
+        COALESCE((
+            SELECT SUM(l.amount)
+            FROM balance_ledger l
+            WHERE l.user_id = :uid
+              AND l.related_type = 'escrow_lock'
+              AND l.status = 'locked'
+        ), 0)
+        -
+        COALESCE((
+            SELECT SUM(r.amount)
+            FROM balance_ledger r
+            WHERE r.user_id = :uid
+              AND r.related_type = 'escrow_release'
+              AND EXISTS (
+                  SELECT 1
+                  FROM balance_ledger l2
+                  WHERE l2.user_id = r.user_id
+                    AND l2.related_type = 'escrow_lock'
+                    AND l2.related_id = r.related_id
+              )
+        ), 0),
+        0
+    ) AS locked_balance
 ");
-$stmt->execute([$userId]);
+$stmt->execute([':uid' => $userId]);
 $lockedBalance = (float)$stmt->fetchColumn();
 
 /* -----------------------------

@@ -9,11 +9,17 @@ require_login();
 
 $userId = (int)$_SESSION['user_id'];
 $tradeId = (int)($_POST['trade_id'] ?? 0);
-$reason = trim((string)($_POST['reason'] ?? ''));
+$winner = (string)($_POST['winner'] ?? '');
 
 if ($tradeId <= 0) {
-    flash_set('error', 'Invalid trade request.');
-    header('Location: /trade/list.php');
+    flash_set('error', 'Invalid dispute resolution request.');
+    header('Location: /trade/disputes.php');
+    exit;
+}
+
+if (!trade_is_moderator($pdo, $userId)) {
+    flash_set('error', 'Moderator access required.');
+    header("Location: /trade/view.php?id={$tradeId}");
     exit;
 }
 
@@ -21,31 +27,21 @@ $pdo->beginTransaction();
 
 try {
     $trade = trade_load_by_id($pdo, $tradeId, true);
-
     if (!$trade) {
         throw new RuntimeException('Trade not found');
     }
 
-    $role = trade_role_for_user($trade, $userId);
-    if ($role === null) {
-        throw new RuntimeException('Not your trade');
-    }
-
-    if ($trade['status'] !== TRADE_STATUS_PAID) {
-        throw new RuntimeException('Only paid trades can be disputed');
-    }
-
-    trade_open_dispute($pdo, $trade, $userId, $reason);
+    trade_resolve_dispute($pdo, $trade, $userId, $winner);
 
     $pdo->commit();
-
+    flash_set('success', 'Dispute resolved.');
     header("Location: /trade/view.php?id={$tradeId}");
     exit;
 } catch (Throwable $e) {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
-    flash_set('error', 'Unable to open dispute for this trade.');
+    flash_set('error', 'Unable to resolve dispute right now.');
     header("Location: /trade/view.php?id={$tradeId}");
     exit;
 }

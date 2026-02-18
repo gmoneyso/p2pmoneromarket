@@ -7,6 +7,7 @@ require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../db/database.php';
 require_once __DIR__ . '/../messages/helpers.php';
 require_once __DIR__ . '/../includes/flash.php';
+require_once __DIR__ . '/../includes/logger.php';
 
 require_login();
 
@@ -91,6 +92,13 @@ try {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
+
+    log_error('Message send failed', [
+        'user_id' => $userId,
+        'thread_id' => $threadId,
+        'error' => $e->getMessage(),
+    ]);
+
     flash_set('error', 'Unable to send message right now.');
     header('Location: ' . $return);
     exit;
