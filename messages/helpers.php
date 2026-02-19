@@ -9,3 +9,4 @@ require_once __DIR__ . '/helpers/core.php';
 require_once __DIR__ . '/helpers/unlock.php';
 require_once __DIR__ . '/helpers/crypto.php';
 require_once __DIR__ . '/helpers/threads.php';
+require_once __DIR__ . '/helpers/send.php';

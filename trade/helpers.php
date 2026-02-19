@@ -2,6 +2,8 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/state_machine.php';
+require_once __DIR__ . '/../includes/notifications.php';
+require_once __DIR__ . '/../includes/staff.php';
 
 function trade_load_by_id(PDO $pdo, int $tradeId, bool $forUpdate = false): ?array
 {
@@ -308,13 +310,40 @@ function trade_user_has_review(PDO $pdo, int $tradeId, int $userId): bool
     return (bool)$stmt->fetchColumn();
 }
 
+
+function trade_notify_participants(PDO $pdo, array $trade, string $type, string $title, string $body, ?int $actorUserId = null): void
+{
+    $buyerId = (int)($trade['buyer_id'] ?? 0);
+    $sellerId = (int)($trade['seller_id'] ?? 0);
+    $entityId = (int)($trade['id'] ?? 0);
+
+    foreach ([$buyerId, $sellerId] as $uid) {
+        if ($uid <= 0) {
+            continue;
+        }
+        if ($actorUserId !== null && $uid === $actorUserId) {
+            continue;
+        }
+
+        notify_user($pdo, $uid, $type, $title, $body, 'trade', $entityId);
+    }
+}
+
+function trade_moderator_user_ids(PDO $pdo): array
+{
+    return staff_moderator_user_ids($pdo);
+}
+
+function trade_notify_moderators(PDO $pdo, string $type, string $title, string $body, int $tradeId): void
+{
+    foreach (trade_moderator_user_ids($pdo) as $moderatorId) {
+        notify_user($pdo, $moderatorId, $type, $title, $body, 'trade', $tradeId);
+    }
+}
+
 function trade_is_moderator(PDO $pdo, int $userId): bool
 {
-    $stmt = $pdo->prepare("SELECT username FROM users WHERE id = ? LIMIT 1");
-    $stmt->execute([$userId]);
-    $username = (string)($stmt->fetchColumn() ?: '');
-
-    return $username === 'Habibi';
+    return staff_is_moderator($pdo, $userId);
 }
 
 function trade_open_dispute(PDO $pdo, array $trade, int $openedByUserId, ?string $reason = null): void

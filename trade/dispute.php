@@ -39,6 +39,22 @@ try {
 
     $pdo->commit();
 
+    trade_notify_participants(
+        $pdo,
+        $trade,
+        'trade_disputed',
+        'Trade dispute opened',
+        sprintf('Trade #%d has been disputed and is awaiting moderator review.', $tradeId),
+        $userId
+    );
+    trade_notify_moderators(
+        $pdo,
+        'trade_dispute_queue',
+        'New dispute requires review',
+        sprintf('Trade #%d was disputed. Open dispute queue to review.', $tradeId),
+        $tradeId
+    );
+
     header("Location: /trade/view.php?id={$tradeId}");
     exit;
 } catch (Throwable $e) {

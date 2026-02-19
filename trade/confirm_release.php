@@ -90,6 +90,15 @@ try {
 
     $pdo->commit();
 
+    trade_notify_participants(
+        $pdo,
+        $trade,
+        'trade_released',
+        'Escrow released',
+        sprintf('Trade #%d escrow was released by seller. Please submit your review.', $tradeId),
+        $userId
+    );
+
     header("Location: /reviews/start.php?trade_id={$tradeId}");
     exit;
 

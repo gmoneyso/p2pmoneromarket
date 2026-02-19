@@ -34,6 +34,17 @@ try {
     trade_resolve_dispute($pdo, $trade, $userId, $winner);
 
     $pdo->commit();
+
+    $winnerText = strtolower(trim($winner)) === 'buyer' ? 'buyer' : 'seller';
+    trade_notify_participants(
+        $pdo,
+        $trade,
+        'trade_dispute_resolved',
+        'Dispute resolved',
+        sprintf('Trade #%d dispute was resolved in favor of %s.', $tradeId, $winnerText),
+        $userId
+    );
+
     flash_set('success', 'Dispute resolved.');
     header("Location: /trade/view.php?id={$tradeId}");
     exit;

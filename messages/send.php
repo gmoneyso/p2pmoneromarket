@@ -8,6 +8,7 @@ require_once __DIR__ . '/../db/database.php';
 require_once __DIR__ . '/../messages/helpers.php';
 require_once __DIR__ . '/../includes/flash.php';
 require_once __DIR__ . '/../includes/logger.php';
+require_once __DIR__ . '/../includes/notifications.php';
 
 require_login();
 
@@ -28,62 +29,34 @@ if (!messages_is_unlocked($pdo, $userId)) {
     exit;
 }
 
-$stmt = $pdo->prepare("SELECT id, username, pgp_public, backup_completed FROM users WHERE id = ? LIMIT 1");
-$stmt->execute([$userId]);
-$sender = $stmt->fetch(PDO::FETCH_ASSOC);
-if (!$sender) {
-    flash_set('error', 'Sender account not found.');
-    header('Location: ' . $return);
-    exit;
-}
-
-if ((int)($sender['backup_completed'] ?? 0) !== 1 || trim((string)($sender['pgp_public'] ?? '')) === '') {
-    flash_set('error', 'Complete backup setup before sending secure messages.');
-    header('Location: /dashboard.php');
-    exit;
-}
-
-$stmt = $pdo->prepare("SELECT user_a_id, user_b_id FROM message_threads WHERE id = ? LIMIT 1");
-$stmt->execute([$threadId]);
-$thread = $stmt->fetch(PDO::FETCH_ASSOC);
-if (!$thread) {
-    flash_set('error', 'Conversation not found.');
-    header('Location: /messages.php');
-    exit;
-}
-
-$userA = (int)$thread['user_a_id'];
-$userB = (int)$thread['user_b_id'];
-if ($userId !== $userA && $userId !== $userB) {
-    flash_set('error', 'Conversation not found.');
-    header('Location: /messages.php');
-    exit;
-}
-
-$recipientId = $userId === $userA ? $userB : $userA;
-$stmt = $pdo->prepare("SELECT id, username, pgp_public FROM users WHERE id = ? LIMIT 1");
-$stmt->execute([$recipientId]);
-$recipient = $stmt->fetch(PDO::FETCH_ASSOC);
-if (!$recipient || trim((string)($recipient['pgp_public'] ?? '')) === '') {
-    flash_set('error', 'Recipient has no active public key.');
-    header('Location: ' . $return);
-    exit;
-}
-
 try {
-    $cipherRecipient = messages_encrypt_for_recipient((string)$recipient['username'], (string)$recipient['pgp_public'], $body);
-    $cipherSender = messages_encrypt_for_recipient((string)$sender['username'], (string)($sender['pgp_public'] ?? ''), $body);
+    $sender = messages_load_sender_for_send($pdo, $userId);
+    $participants = messages_load_participants_for_send($pdo, $threadId, $userId);
+    $recipientId = (int)$participants['recipient_id'];
+    $recipient = $participants['recipient'];
+
+    $encrypted = messages_encrypt_for_thread_participants($sender, $recipient, $body);
 
     $pdo->beginTransaction();
-
-    $stmt = $pdo->prepare("\n        INSERT INTO messages (thread_id, sender_id, recipient_id, ciphertext_sender, ciphertext_recipient, created_at)\n        VALUES (?, ?, ?, ?, ?, NOW())\n    ");
-    $stmt->execute([$threadId, $userId, $recipientId, $cipherSender, $cipherRecipient]);
-    $msgId = (int)$pdo->lastInsertId();
-
-    $stmt = $pdo->prepare("UPDATE message_threads SET last_message_id = ?, updated_at = NOW() WHERE id = ?");
-    $stmt->execute([$msgId, $threadId]);
-
+    $msgId = messages_store_thread_message(
+        $pdo,
+        $threadId,
+        $userId,
+        $recipientId,
+        (string)$encrypted['cipher_sender'],
+        (string)$encrypted['cipher_recipient']
+    );
     $pdo->commit();
+
+    notify_user(
+        $pdo,
+        $recipientId,
+        'message_new',
+        'New secure message',
+        sprintf('You have a new secure message from %s.', (string)$sender['username']),
+        'message_thread',
+        $threadId
+    );
 
     flash_set('success', 'Message sent.');
     header('Location: ' . $return);

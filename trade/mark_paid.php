@@ -84,6 +84,15 @@ try {
 
     $pdo->commit();
 
+    trade_notify_participants(
+        $pdo,
+        $trade,
+        'trade_paid',
+        'Trade marked as paid',
+        sprintf('Trade #%d was marked paid by buyer. Seller can now release escrow.', $tradeId),
+        $userId
+    );
+
     header("Location: /trade/view.php?id={$tradeId}");
     exit;
 

@@ -2,16 +2,30 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/flash.php';
+require_once __DIR__ . '/../includes/staff.php';
 
 $is_logged_in = isset($_SESSION['user_id']);
 $headerUnreadNotifications = 0;
+$headerUnreadMessages = 0;
+$headerCanAccessAdmin = false;
+
 if ($is_logged_in && isset($pdo) && $pdo instanceof PDO) {
     try {
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0");
-        $stmt->execute([(int)$_SESSION['user_id']]);
+        $sessionUserId = (int)$_SESSION['user_id'];
+
+        $stmt = $pdo->prepare('SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0');
+        $stmt->execute([$sessionUserId]);
         $headerUnreadNotifications = (int)$stmt->fetchColumn();
+
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0 AND type = 'message_new'");
+        $stmt->execute([$sessionUserId]);
+        $headerUnreadMessages = (int)$stmt->fetchColumn();
+
+        $headerCanAccessAdmin = staff_is_moderator($pdo, $sessionUserId);
     } catch (Throwable $e) {
         $headerUnreadNotifications = 0;
+        $headerUnreadMessages = 0;
+        $headerCanAccessAdmin = false;
     }
 }
 ?>
@@ -34,6 +48,14 @@ if ($is_logged_in && isset($pdo) && $pdo instanceof PDO) {
                 <span class="text">Trades</span>
             </a>
 
+            <a href="/messages.php" class="nav-item nav-item-bell" title="Messages">
+                <span class="icon" aria-hidden="true">💬</span>
+                <span class="text">Messages</span>
+                <?php if ($headerUnreadMessages > 0): ?>
+                    <span class="nav-badge"><?= $headerUnreadMessages > 99 ? '99+' : $headerUnreadMessages ?></span>
+                <?php endif; ?>
+            </a>
+
             <a href="/userads.php" class="nav-item" title="My Ads">
                 <span class="icon" aria-hidden="true">📋</span>
                 <span class="text">My Ads</span>
@@ -51,6 +73,13 @@ if ($is_logged_in && isset($pdo) && $pdo instanceof PDO) {
                     <span class="nav-badge"><?= $headerUnreadNotifications > 99 ? '99+' : $headerUnreadNotifications ?></span>
                 <?php endif; ?>
             </a>
+
+            <?php if ($headerCanAccessAdmin): ?>
+                <a href="/admin/dashboard.php" class="nav-item" title="Admin">
+                    <span class="icon" aria-hidden="true">🛡️</span>
+                    <span class="text">Admin</span>
+                </a>
+            <?php endif; ?>
 
             <a href="/logout.php" class="nav-item danger" title="Logout">
                 <span class="icon" aria-hidden="true">⏻</span>

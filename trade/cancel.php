@@ -47,6 +47,15 @@ try {
 
     $pdo->commit();
 
+    trade_notify_participants(
+        $pdo,
+        $trade,
+        'trade_cancelled',
+        'Trade cancelled',
+        sprintf('Trade #%d was cancelled before payment confirmation.', $tradeId),
+        $userId
+    );
+
     header("Location: /trade/view.php?id={$tradeId}");
     exit;
 } catch (Throwable $e) {

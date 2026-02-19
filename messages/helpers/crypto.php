@@ -20,20 +20,24 @@ function messages_import_public_key_and_get_fingerprint(string $tmpHome, string 
         escapeshellarg($tmpHome),
         escapeshellarg($pubFile)
     );
+    $importOut = [];
+    $importCode = 0;
     exec($importCmd, $importOut, $importCode);
 
     if ($importCode !== 0) {
-        throw new RuntimeException('Unable to import recipient public key.');
+        throw new RuntimeException('Unable to import recipient public key. ' . trim(implode("\n", $importOut)));
     }
 
     $listCmd = sprintf(
         'GNUPGHOME=%s gpg --batch --with-colons --fingerprint --list-keys 2>&1',
         escapeshellarg($tmpHome)
     );
+    $listOut = [];
+    $listCode = 0;
     exec($listCmd, $listOut, $listCode);
 
     if ($listCode !== 0 || !$listOut) {
-        throw new RuntimeException('Unable to read imported key metadata.');
+        throw new RuntimeException('Unable to read imported key metadata. ' . trim(implode("\n", $listOut)));
     }
 
     foreach ($listOut as $line) {
@@ -49,11 +53,10 @@ function messages_import_public_key_and_get_fingerprint(string $tmpHome, string 
     throw new RuntimeException('Imported key fingerprint not found.');
 }
 
-function messages_encrypt_for_recipient(string $recipientUsername, string $recipientPublicKey, string $plaintext): string
+function messages_encrypt_for_recipient(string $recipientPublicKey, string $plaintext): string
 {
-    $recipientUsername = trim($recipientUsername);
     $recipientPublicKey = trim($recipientPublicKey);
-    if ($recipientUsername === '' || $recipientPublicKey === '' || trim($plaintext) === '') {
+    if ($recipientPublicKey === '' || trim($plaintext) === '') {
         throw new RuntimeException('Missing recipient key material or message body.');
     }
 
@@ -78,12 +81,16 @@ function messages_encrypt_for_recipient(string $recipientUsername, string $recip
             escapeshellarg($plainFile)
         );
 
-        $ciphertext = shell_exec($encryptCmd);
-        if (!is_string($ciphertext) || trim($ciphertext) === '') {
-            throw new RuntimeException('Unable to encrypt message for recipient.');
+        $encryptOut = [];
+        $encryptCode = 0;
+        exec($encryptCmd, $encryptOut, $encryptCode);
+        $ciphertext = trim(implode("\n", $encryptOut));
+
+        if ($encryptCode !== 0 || $ciphertext === '' || !str_contains($ciphertext, 'BEGIN PGP MESSAGE')) {
+            throw new RuntimeException('Unable to encrypt message for recipient. ' . $ciphertext);
         }
 
-        return $ciphertext;
+        return $ciphertext . PHP_EOL;
     } finally {
         messages_cleanup_temp_files($tmpDir, $tmpHome, [$pubFile, $plainFile]);
     }
