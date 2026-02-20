@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../includes/paths.php';
+
 /*
  * pgpgen.php
  *
@@ -8,8 +10,8 @@ declare(strict_types=1);
  *   GNUPGHOME=/path/to/isolated/gnupg php pgpgen.php username
  *
  * Expects:
- *   /var/www/moneromarket/backup/temp/{username}/pass.txt
- *   /var/www/moneromarket/backup/temp/{username}/{username}_backup.txt
+ *   {APP_ROOT}/backup/temp/{username}/pass.txt
+ *   {APP_ROOT}/backup/temp/{username}/{username}_backup.txt
  *
  * Produces:
  *   public_key.txt
@@ -26,7 +28,7 @@ $username = $argv[1];
 /* -----------------------------
  * Paths
  * ----------------------------- */
-$baseDir   = '/var/www/moneromarket/backup/temp';
+$baseDir   = app_backup_temp_path();
 $userDir   = $baseDir . '/' . $username;
 
 $passFile  = $userDir . '/pass.txt';

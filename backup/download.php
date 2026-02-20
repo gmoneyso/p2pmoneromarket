@@ -5,6 +5,7 @@ session_start();
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../db/database.php';
 require_once __DIR__ . '/../includes/user.php';
+require_once __DIR__ . '/../includes/paths.php';
 
 /* -----------------------------
  * Auth guard
@@ -22,7 +23,7 @@ if (!$user || (int)$user['backup_completed'] === 1) {
  * Paths
  * ----------------------------- */
 $username = $user['username'];
-$baseDir  = '/var/www/moneromarket/backup/temp';
+$baseDir  = app_backup_temp_path();
 $userDir  = $baseDir . '/' . $username;
 
 $passFile   = $userDir . '/pass.txt';
