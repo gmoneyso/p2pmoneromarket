@@ -4,4 +4,3 @@
 {"time":"2026-01-19 16:43:05","ip":"127.0.0.1","msg":"GPG failure","ctx":{"error":"Call to undefined method gnupg::genkey()"}}
 {"time":"2026-01-19 16:43:05","ip":"127.0.0.1","msg":"Backup failed","ctx":{"error":"Call to undefined method gnupg::genkey()","file":"/var/www/moneromarket/backup/steps/generate_pgp.php","line":20}}
 {"time":"2026-01-19 18:04:04","ip":"127.0.0.1","msg":"GPG export failed","ctx":[]}
-{"time":"2026-02-20 08:00:42","ip":"127.0.0.1","msg":"Message send failed","ctx":{"user_id":2,"thread_id":1,"error":"Unable to encrypt message for recipient. "}}

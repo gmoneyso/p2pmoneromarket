@@ -29,14 +29,13 @@ CREATE TABLE `admin_actions` (
   `action_type` varchar(64) NOT NULL,
   `target_type` varchar(32) DEFAULT NULL,
   `target_id` bigint(20) DEFAULT NULL,
-  `details_json` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+  `details_json` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`details_json`)),
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `idx_admin_actions_actor_created` (`actor_user_id`,`created_at`),
   KEY `idx_admin_actions_target` (`target_type`,`target_id`),
-  CONSTRAINT `fk_admin_actions_actor` FOREIGN KEY (`actor_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `chk_admin_actions_details_json` CHECK (json_valid(`details_json`))
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  CONSTRAINT `fk_admin_actions_actor` FOREIGN KEY (`actor_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -45,10 +44,6 @@ CREATE TABLE `admin_actions` (
 
 LOCK TABLES `admin_actions` WRITE;
 /*!40000 ALTER TABLE `admin_actions` DISABLE KEYS */;
-INSERT INTO `admin_actions` VALUES
-(1,1,'moderator_promote','user',2,'{\"reason\":\"manual role update\"}','2026-02-20 07:55:39'),
-(2,1,'moderator_demote','user',2,'{\"reason\":\"manual role update\"}','2026-02-20 07:56:00'),
-(3,1,'moderator_promote','user',2,'{\"reason\":\"manual role update\"}','2026-02-20 07:56:56');
 /*!40000 ALTER TABLE `admin_actions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -232,7 +227,7 @@ CREATE TABLE `message_threads` (
 LOCK TABLES `message_threads` WRITE;
 /*!40000 ALTER TABLE `message_threads` DISABLE KEYS */;
 INSERT INTO `message_threads` VALUES
-(1,1,2,NULL,NULL,'2026-02-18 20:05:07','2026-02-18 20:05:07');
+(1,1,2,NULL,1,'2026-02-20 16:51:37','2026-02-20 17:18:00');
 /*!40000 ALTER TABLE `message_threads` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -259,8 +254,6 @@ CREATE TABLE `message_unlock_attempts` (
 
 LOCK TABLES `message_unlock_attempts` WRITE;
 /*!40000 ALTER TABLE `message_unlock_attempts` DISABLE KEYS */;
-INSERT INTO `message_unlock_attempts` VALUES
-(2,0,NULL,'2026-02-20 08:00:19');
 /*!40000 ALTER TABLE `message_unlock_attempts` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -282,7 +275,7 @@ CREATE TABLE `message_unlock_sessions` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_unlock_token` (`user_id`,`token_hash`),
   CONSTRAINT `fk_unlock_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -291,9 +284,6 @@ CREATE TABLE `message_unlock_sessions` (
 
 LOCK TABLES `message_unlock_sessions` WRITE;
 /*!40000 ALTER TABLE `message_unlock_sessions` DISABLE KEYS */;
-INSERT INTO `message_unlock_sessions` VALUES
-(1,2,'236c6ffd3268fb0aff87031a65cca47f49b960cfd00efad5294fcd9e31e9279d','$2y$10$bj2me4vjdh4wZ0R9jL5BCOePtj/jgU0Ap/1RUmxvTlBFxFyhJXmwi','2026-02-21 20:04:52','2026-02-18 20:04:52','2026-02-20 04:43:29'),
-(2,2,'5eee48cdbf939e3a35e8fdb61c08a7f2e02f4cf97e3b2e239f0fe641f2adf17c','$2y$10$yjCEriGqWyYN.ZMgCd13Re7glJOZp6O249NAzipKOLSsNHrQWD/gu','2026-02-23 08:00:19','2026-02-20 08:00:19',NULL);
 /*!40000 ALTER TABLE `message_unlock_sessions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -309,8 +299,7 @@ CREATE TABLE `messages` (
   `thread_id` int(11) NOT NULL,
   `sender_id` int(11) NOT NULL,
   `recipient_id` int(11) NOT NULL,
-  `ciphertext_sender` text NOT NULL,
-  `ciphertext_recipient` text NOT NULL,
+  `ciphertext` mediumtext NOT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `idx_thread` (`thread_id`),
@@ -319,7 +308,7 @@ CREATE TABLE `messages` (
   CONSTRAINT `fk_msg_recipient` FOREIGN KEY (`recipient_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_msg_sender` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_msg_thread` FOREIGN KEY (`thread_id`) REFERENCES `message_threads` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -328,6 +317,8 @@ CREATE TABLE `messages` (
 
 LOCK TABLES `messages` WRITE;
 /*!40000 ALTER TABLE `messages` DISABLE KEYS */;
+INSERT INTO `messages` VALUES
+(1,1,2,1,'-----BEGIN PGP MESSAGE-----\n\nhF4DD7V5Ybo5c3oSAQdAQZVHjt4bqI9w24HIiklA/XwnHDPGOB8iIbiTskUAtREw\nS971MpZQ4Kmcgooo4mLtsqTr/D1m1MiZxRpCTZWJ1LjqMIvogdPTUuBBtlx6n4Vm\nhF4DMEU25GGR9ecSAQdAG/e/DwkZ//txlWDPzyR5lBKT+bQsGbMOketO0tPrO0Aw\nA6bISH8MSc1LwxsafZRGr62CfYiQddly0QJq9CIbPObVEUHZmhU0r6PXrfSkzie3\n1EoBCQIQOEfysaoNPhLKFw7Y61oM+bOZTfJCx7eNTfL2IMlfEpdCjP5iTlDbTs/F\nn1FWyIeN92fw0Xv1AsFJBwZqOxc0Nk2WaTrxCA==\n=1dDO\n-----END PGP MESSAGE-----\n','2026-02-20 17:18:00');
 /*!40000 ALTER TABLE `messages` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -357,7 +348,7 @@ CREATE TABLE `notifications` (
   KEY `idx_notifications_user_created` (`user_id`,`created_at`),
   KEY `idx_notifications_user_read` (`user_id`,`is_read`),
   CONSTRAINT `fk_notifications_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -368,7 +359,8 @@ LOCK TABLES `notifications` WRITE;
 /*!40000 ALTER TABLE `notifications` DISABLE KEYS */;
 INSERT INTO `notifications` VALUES
 (1,2,'withdrawal_pending','Withdrawal request created','Your withdrawal request has been queued for broadcast.','withdrawal',1,NULL,1,'2026-02-13 12:12:38',NULL,'2026-02-13 10:51:31','2026-02-13 12:12:38'),
-(2,2,'withdrawal_failed','Withdrawal failed','Withdrawal could not be broadcast. Reserved balance has been restored.','withdrawal',1,NULL,1,'2026-02-14 06:44:32',NULL,'2026-02-14 06:43:36','2026-02-14 06:44:32');
+(2,2,'withdrawal_failed','Withdrawal failed','Withdrawal could not be broadcast. Reserved balance has been restored.','withdrawal',1,NULL,1,'2026-02-14 06:44:32',NULL,'2026-02-14 06:43:36','2026-02-14 06:44:32'),
+(3,1,'message_new','New secure message','You have a new secure message from anonwan.','message_thread',1,NULL,1,'2026-02-20 17:20:44',NULL,'2026-02-20 17:18:00','2026-02-20 17:20:44');
 /*!40000 ALTER TABLE `notifications` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -457,7 +449,7 @@ CREATE TABLE `staff_role_events` (
   KEY `idx_staff_role_events_actor_created` (`changed_by_user_id`,`created_at`),
   CONSTRAINT `fk_staff_role_events_actor` FOREIGN KEY (`changed_by_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_staff_role_events_target` FOREIGN KEY (`target_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -466,10 +458,6 @@ CREATE TABLE `staff_role_events` (
 
 LOCK TABLES `staff_role_events` WRITE;
 /*!40000 ALTER TABLE `staff_role_events` DISABLE KEYS */;
-INSERT INTO `staff_role_events` VALUES
-(1,2,'none','moderator',1,'manual role update','2026-02-20 07:55:39'),
-(2,2,'moderator','none',1,'manual role update','2026-02-20 07:56:00'),
-(3,2,'none','moderator',1,'manual role update','2026-02-20 07:56:56');
 /*!40000 ALTER TABLE `staff_role_events` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -489,7 +477,7 @@ CREATE TABLE `staff_roles` (
   UNIQUE KEY `uniq_staff_user` (`user_id`),
   KEY `idx_staff_role` (`role`),
   CONSTRAINT `fk_staff_roles_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=58 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -499,8 +487,7 @@ CREATE TABLE `staff_roles` (
 LOCK TABLES `staff_roles` WRITE;
 /*!40000 ALTER TABLE `staff_roles` DISABLE KEYS */;
 INSERT INTO `staff_roles` VALUES
-(1,1,'admin','2026-01-17 13:12:20'),
-(38,2,'moderator','2026-02-20 07:56:56');
+(1,1,'admin','2026-01-17 13:12:20');
 /*!40000 ALTER TABLE `staff_roles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -832,7 +819,7 @@ LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
 INSERT INTO `users` VALUES
 (1,'Habibi','$argon2id$v=19$m=65536,t=4,p=1$MHQycFhOWmVCZkMwWnVCSQ$ruWWljCgHMvFBNNatLdOO/LkoWW43Q2k5BaooP57lfk','-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmDMEaXMz5xYJKwYBBAHaRw8BAQdApXsjnCHHLL4MJPzXCQwJI5NWFu5J/GOXQ1IB\nY6tuUFe0H0hhYmliaSA8SGFiaWJpQHAycG1vbmVyby5sb2NhbD6IkwQTFgoAOxYh\nBLLl7cBaYo3xjBHkZJ0nYWXwNi4OBQJpczPnAhsDBQsJCAcCAiICBhUKCQgLAgQW\nAgMBAh4HAheAAAoJEJ0nYWXwNi4OJfMBAI/gIUYe0hVShRY00xUJshE1OAd2Ob7H\nxHFlk4XzwJRYAQDvT5nTSLgIIB59+EbMJpPdZODUHIsOZwCbdT9cwF+ZDbg4BGlz\nM+cSCisGAQQBl1UBBQEBB0BzHnm1vaaXMdK/4Y04VU9Neq27b1DGREJV0DLONwjo\nUQMBCAeIeAQYFgoAIBYhBLLl7cBaYo3xjBHkZJ0nYWXwNi4OBQJpczPnAhsMAAoJ\nEJ0nYWXwNi4Ou60A/j4WZ+WVW4IIr879lkQqhafmZhvPbsa6Wdrl806MxR7OAQCV\nunQu+CIEuxcul9/QH1sTlGRSxw0BVeMXFfWQirjyD5gzBGlzTNgWCSsGAQQB2kcP\nAQEHQFKhkgLHU+NcCra2xIy2ECe+5Pwu1ElrRdk9br3uz9FJtB9IYWJpYmkgPEhh\nYmliaUBwMnBtb25lcm8ubG9jYWw+iJMEExYKADsWIQTwsZU85lZwZJRBfscDHxVR\n/zddFQUCaXNM2AIbAwULCQgHAgIiAgYVCgkICwIEFgIDAQIeBwIXgAAKCRADHxVR\n/zddFU2tAQC3ARKTIPkJytcPBpKV5vGPzykihdHpw1UtmS58SmtRJwD9Fho0DRFj\n51nOib3viOPSr7Vp+D71/gUHOzgFprNwPgm4OARpc0zYEgorBgEEAZdVAQUBAQdA\nUNGPRx3tZWPWUX46CYkYYNtLsnE2fTuewy82rq/FnlMDAQgHiHgEGBYKACAWIQTw\nsZU85lZwZJRBfscDHxVR/zddFQUCaXNM2AIbDAAKCRADHxVR/zddFToaAQDqYICM\nhFY6OJT7/jvst2vI447OFbSXAoRZQpGaUovepwEAz5UAUPmf1ff71eFh0mTy+hr7\nUTpyGSvnAmyrslWw5ASYMwRpc1HCFgkrBgEEAdpHDwEBB0Dz2BlNvHWvqDPF2Uwe\nMYzMkzmXH06/9hHvyKkzJvp6VLQfSGFiaWJpIDxIYWJpYmlAcDJwbW9uZXJvLmxv\nY2FsPoiTBBMWCgA7FiEES+iLq5WKOO9WBI4S1dI5vzVHjTYFAmlzUcICGwMFCwkI\nBwICIgIGFQoJCAsCBBYCAwECHgcCF4AACgkQ1dI5vzVHjTYzUAEArRey3Mki79W7\nYxSrspZzJpNTTjwfETRYNIrwhN3tJ6cBAKJQ97YClK2VOfcgmukTo+iiA3hZ2aiP\nNGFiPSJ11zQAuDgEaXNRwhIKKwYBBAGXVQEFAQEHQHAFSYXBoq8PkR4jEzP661bk\nrWrsbLmwCMQNN8zdErsOAwEIB4h4BBgWCgAgFiEES+iLq5WKOO9WBI4S1dI5vzVH\njTYFAmlzUcICGwwACgkQ1dI5vzVHjTbJ8wD/RNc15pgNYGxD8EKtmJWieZ1sSRFs\nA134whOZjta2f6QBAM7eXMQy+dQTo5ogVCtYmyD+SNsbdFTazR8SjgQJF/EM\n=iU3l\n-----END PGP PUBLIC KEY BLOCK-----','$2y$10$LCUJMMSi08KuECgyVhy7aOOhs57/AALxmhMIM9h7x4gzk01AdU.Wm','2026-01-17 13:12:20',1),
-(2,'anonwan','$argon2id$v=19$m=65536,t=4,p=1$dmo1dDliNlpBWndjblFidg$HIXtQqIVb5m+hK+UJ82Jq8OBWwNAT70MUWOWlyCZHkA','-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmDMEaXNSVxYJKwYBBAHaRw8BAQdAP2lHWTViI0d/0h09UVOqdgaYej9rdSp7Ymoo\nIgxB5w+0IWFub253YW4gPGFub253YW5AcDJwbW9uZXJvLmxvY2FsPoiTBBMWCgA7\nFiEEh1/sovWzy1mzVMLoJ7W21U6FMbwFAmlzUlcCGwMFCwkIBwICIgIGFQoJCAsC\nBBYCAwECHgcCF4AACgkQJ7W21U6FMbzD0QEAiKwtrLLP8JeIVXVRAGSU4shtit/d\nSXXJdA2fGiPFo7YBAKVXmm736FoNCyGcAWsMZkGTakmhXAqKFCA1DTJALlQNuDgE\naXNSVxIKKwYBBAGXVQEFAQEHQBo05fwVYHuY9WNKsYX6T5Ryb7dtJsl03/ds5jh+\nGchdAwEIB4h4BBgWCgAgFiEEh1/sovWzy1mzVMLoJ7W21U6FMbwFAmlzUlcCGwwA\nCgkQJ7W21U6FMbxw7AEAqVdiqBbj83ILpp8FNiaZQnG2tpjRMXUrtPFOMAOVxg8B\nAII3CLOJKpEEhvGD54aYACGCtIViJZrCFXzakwiOpsEDmDMEaZfmdRYJKwYBBAHa\nRw8BAQdAnrCqmk0KaM8Ec6XbtzCcjbkeFE55BC1P5XnaPPUTNSq0IWFub253YW4g\nPGFub253YW5AcDJwbW9uZXJvLmxvY2FsPoiTBBMWCgA7FiEE9FJXrcqZPOlhBDtL\n7p4I+rU6pukFAmmX5nUCGwMFCwkIBwICIgIGFQoJCAsCBBYCAwECHgcCF4AACgkQ\n7p4I+rU6puk/xwD+Os/0W+PjDKuag026TtrTYthHvFYhg4jfYm5mvQPUAHgBAN20\nQKKJxWd7QtN4CM4WGYh0Ly7r8ziIkFxTkmiPpW4GuDgEaZfmdRIKKwYBBAGXVQEF\nAQEHQMe27vNWZk/Yzl1TqHk9PA2JJS9MlAMoqRHg9YxNNOocAwEIB4h4BBgWCgAg\nFiEE9FJXrcqZPOlhBDtL7p4I+rU6pukFAmmX5nUCGwwACgkQ7p4I+rU6pumrYgD+\nPndCQNTlIW9SEV6cTZFHchTzGn7a8OuEOfDQNvsr3HQA/0F+LXJSlx8xzyOZakiF\nT1BLCzi43HhFNbC6pJTw4IYP\n=/iLB\n-----END PGP PUBLIC KEY BLOCK-----','$2y$10$yjCEriGqWyYN.ZMgCd13Re7glJOZp6O249NAzipKOLSsNHrQWD/gu','2026-01-23 10:25:04',1),
+(2,'anonwan','$argon2id$v=19$m=65536,t=4,p=1$dmo1dDliNlpBWndjblFidg$HIXtQqIVb5m+hK+UJ82Jq8OBWwNAT70MUWOWlyCZHkA','-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmDMEaXNSVxYJKwYBBAHaRw8BAQdAP2lHWTViI0d/0h09UVOqdgaYej9rdSp7Ymoo\nIgxB5w+0IWFub253YW4gPGFub253YW5AcDJwbW9uZXJvLmxvY2FsPoiTBBMWCgA7\nFiEEh1/sovWzy1mzVMLoJ7W21U6FMbwFAmlzUlcCGwMFCwkIBwICIgIGFQoJCAsC\nBBYCAwECHgcCF4AACgkQJ7W21U6FMbzD0QEAiKwtrLLP8JeIVXVRAGSU4shtit/d\nSXXJdA2fGiPFo7YBAKVXmm736FoNCyGcAWsMZkGTakmhXAqKFCA1DTJALlQNuDgE\naXNSVxIKKwYBBAGXVQEFAQEHQBo05fwVYHuY9WNKsYX6T5Ryb7dtJsl03/ds5jh+\nGchdAwEIB4h4BBgWCgAgFiEEh1/sovWzy1mzVMLoJ7W21U6FMbwFAmlzUlcCGwwA\nCgkQJ7W21U6FMbxw7AEAqVdiqBbj83ILpp8FNiaZQnG2tpjRMXUrtPFOMAOVxg8B\nAII3CLOJKpEEhvGD54aYACGCtIViJZrCFXzakwiOpsEDmDMEaY7+ohYJKwYBBAHa\nRw8BAQdA25A6xi5t5kzRklt9KsUNw84KirZNzLs1fE1SrGjCx/e0IWFub253YW4g\nPGFub253YW5AcDJwbW9uZXJvLmxvY2FsPoiTBBMWCgA7FiEE0m6wE1RIQn9XNdVp\nkPnd8nK3SP8FAmmO/qICGwMFCwkIBwICIgIGFQoJCAsCBBYCAwECHgcCF4AACgkQ\nkPnd8nK3SP+jYgEA9FsAIqV06GN4rkXeMe+Ja2sCZkMpNXZlcuKg6TeU3fkA+wVa\nV+F+3UcPXBkW2FoZOtDn1UFZQQReKZiYBHBAs2gIuDgEaY7+ohIKKwYBBAGXVQEF\nAQEHQMwhpfUaxeo4xwcI1N8j2JIqGIMLp0O6Ijxwszlb6mkxAwEIB4h4BBgWCgAg\nFiEE0m6wE1RIQn9XNdVpkPnd8nK3SP8FAmmO/qICGwwACgkQkPnd8nK3SP9mtQEA\nomCb5/JXfa2X0DJfqPYeFpdcNNlPYIZl9R5kwgCSAJcA/AlS2+ZgqaC7HpFnqehE\nK2a8SSdI2plAwN6ZRkA4hTMI\n=onn4\n-----END PGP PUBLIC KEY BLOCK-----','$2y$10$bj2me4vjdh4wZ0R9jL5BCOePtj/jgU0Ap/1RUmxvTlBFxFyhJXmwi','2026-01-23 10:25:04',1),
 (3,'sawiti','$argon2id$v=19$m=65536,t=4,p=1$MHFURjBxQklPZ0cwek9iZA$1htnYi50g9B5SvjccxMl0GECfGF9VVRuJyjdJGEdHPI','-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmDMEaXg5bxYJKwYBBAHaRw8BAQdAh/d+fwiLJtcwI09O6qO4oz/o+qG+l0991nWH\ngWiqyta0H3Nhd2l0aSA8c2F3aXRpQHAycG1vbmVyby5sb2NhbD6IkwQTFgoAOxYh\nBARClHQjZNzRmW4NwaknTxc0fJJaBQJpeDlvAhsDBQsJCAcCAiICBhUKCQgLAgQW\nAgMBAh4HAheAAAoJEKknTxc0fJJai2gA+gPBuT31kHOWTJ6b5KkyoynxcIhLTj/y\nZOX8F7chuJcDAQD/3Wrm4AtYzLil2Bb0fS0ExXub8DNLylFR6aYKYZoSArg4BGl4\nOW8SCisGAQQBl1UBBQEBB0CAIER/zXnZSMgOmoGiFpz9T1huxF6+OCwHsfnoCsak\ndAMBCAeIeAQYFgoAIBYhBARClHQjZNzRmW4NwaknTxc0fJJaBQJpeDlvAhsMAAoJ\nEKknTxc0fJJaX+0BAKJA0f0XuEjFv3OtTnd9ieeVXPcxYMJABTF6G8cQ+w78AQDA\n57Z3rPS9lOZfPtkq8XCo7MtHmW+dnO4QLYrvIIxECw==\n=TSNP\n-----END PGP PUBLIC KEY BLOCK-----','$2y$10$gfnxuCtdgNufWLOdG557N.to9lJqeCfg/7pWLoXCtSRjuKvzKav.6','2026-01-24 21:51:47',1),
 (4,'Danie','$argon2id$v=19$m=65536,t=4,p=1$TTZUMHhjTTU4Z0dESE1JRg$hczeQMCpVjjzdwPbC5z0/7pFb7mSKVNoHRlKk4r8FWQ',NULL,NULL,'2026-01-28 19:32:30',0),
 (5,'homelander','$argon2id$v=19$m=65536,t=4,p=1$Z2hERDlERDFGUjEyTXRabA$mEdip3qjV/ZX5TSfRjdVEbVGq6igWfCI1a8pn/cPEAg','-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmDMEaXpthxYJKwYBBAHaRw8BAQdAab7jP0PEDGdU+Rsry9nU48fDcLOq8It7d7GP\noO4Yh6W0J2hvbWVsYW5kZXIgPGhvbWVsYW5kZXJAcDJwbW9uZXJvLmxvY2FsPoiT\nBBMWCgA7FiEEz/t3YWPKRWSfR3AX2JySHTqhIY0FAml6bYcCGwMFCwkIBwICIgIG\nFQoJCAsCBBYCAwECHgcCF4AACgkQ2JySHTqhIY0WrwEA+l0Puoz5oDB2+8F41NzR\nHXbuSxO4DqyBRHZdZugoLfgA/jIujwa2QouBMmNuQnGIWeTjtyuHxx5hKyZOMb/v\nXB8IuDgEaXpthxIKKwYBBAGXVQEFAQEHQMz6dEXMuFryM/7i38FEa+62QdgAIzSs\n65r7zLJUbegbAwEIB4h4BBgWCgAgFiEEz/t3YWPKRWSfR3AX2JySHTqhIY0FAml6\nbYcCGwwACgkQ2JySHTqhIY305gD+OItDi71Qgam+2SzrzJ34OHooVRtKY5cLcs8B\nVCu6eDgBAMYoIUqekcjyV4J+W5vObRW41PNozWWj3kJeHFcifKIP\n=mdwj\n-----END PGP PUBLIC KEY BLOCK-----','$2y$10$qLHOVzYhJeSnZRoH5SIeU.W6ZO5yku5SKsL2JEF1zYAkA6S/K3.nS','2026-01-28 20:10:34',1),
@@ -955,4 +942,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-02-20  8:07:21
+-- Dump completed on 2026-02-20 17:25:13

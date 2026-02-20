@@ -6,41 +6,69 @@ function messages_cleanup_temp_files(string $tmpDir, string $tmpHome, array $ext
     foreach ($extraFiles as $f) {
         @unlink($f);
     }
-    foreach (glob($tmpHome . '/*') ?: [] as $f) {
-        @unlink($f);
+
+    if (is_dir($tmpHome)) {
+        $it = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($tmpHome, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST
+        );
+        foreach ($it as $path) {
+            if ($path->isDir()) {
+                @rmdir($path->getPathname());
+            } else {
+                @unlink($path->getPathname());
+            }
+        }
     }
+
     @rmdir($tmpHome);
     @rmdir($tmpDir);
 }
 
-function messages_import_public_key_and_get_fingerprint(string $tmpHome, string $pubFile): string
+function messages_run_command(string $command, string $stdin = ''): array
 {
-    $importCmd = sprintf(
-        'GNUPGHOME=%s gpg --batch --yes --import %s 2>&1',
-        escapeshellarg($tmpHome),
-        escapeshellarg($pubFile)
-    );
-    $importOut = [];
-    $importCode = 0;
-    exec($importCmd, $importOut, $importCode);
+    $spec = [
+        0 => ['pipe', 'r'],
+        1 => ['pipe', 'w'],
+        2 => ['pipe', 'w'],
+    ];
 
-    if ($importCode !== 0) {
-        throw new RuntimeException('Unable to import recipient public key. ' . trim(implode("\n", $importOut)));
+    $proc = proc_open($command, $spec, $pipes);
+    if (!is_resource($proc)) {
+        throw new RuntimeException('Failed to start gpg process.');
     }
 
-    $listCmd = sprintf(
-        'GNUPGHOME=%s gpg --batch --with-colons --fingerprint --list-keys 2>&1',
+    fwrite($pipes[0], $stdin);
+    fclose($pipes[0]);
+
+    $stdout = stream_get_contents($pipes[1]);
+    fclose($pipes[1]);
+
+    $stderr = stream_get_contents($pipes[2]);
+    fclose($pipes[2]);
+
+    $code = proc_close($proc);
+
+    return [
+        'code' => (int)$code,
+        'stdout' => (string)$stdout,
+        'stderr' => (string)$stderr,
+    ];
+}
+
+function messages_fingerprint_from_public_key(string $tmpHome, string $publicKey): string
+{
+    $cmd = sprintf(
+        'GNUPGHOME=%s gpg --batch --with-colons --import-options show-only --import 2>&1',
         escapeshellarg($tmpHome)
     );
-    $listOut = [];
-    $listCode = 0;
-    exec($listCmd, $listOut, $listCode);
 
-    if ($listCode !== 0 || !$listOut) {
-        throw new RuntimeException('Unable to read imported key metadata. ' . trim(implode("\n", $listOut)));
+    $result = messages_run_command($cmd, $publicKey);
+    if ($result['code'] !== 0 || trim($result['stdout']) === '') {
+        throw new RuntimeException('Unable to inspect recipient public key. ' . trim($result['stdout'] . "\n" . $result['stderr']));
     }
 
-    foreach ($listOut as $line) {
+    foreach (explode("\n", $result['stdout']) as $line) {
         if (str_starts_with($line, 'fpr:')) {
             $parts = explode(':', $line);
             $fingerprint = trim((string)($parts[9] ?? ''));
@@ -50,13 +78,26 @@ function messages_import_public_key_and_get_fingerprint(string $tmpHome, string 
         }
     }
 
-    throw new RuntimeException('Imported key fingerprint not found.');
+    throw new RuntimeException('Recipient key fingerprint not found.');
 }
 
-function messages_encrypt_for_recipient(string $recipientPublicKey, string $plaintext): string
+function messages_import_public_key(string $tmpHome, string $publicKey): void
 {
-    $recipientPublicKey = trim($recipientPublicKey);
-    if ($recipientPublicKey === '' || trim($plaintext) === '') {
+    $cmd = sprintf(
+        'GNUPGHOME=%s gpg --batch --yes --import 2>&1',
+        escapeshellarg($tmpHome)
+    );
+
+    $result = messages_run_command($cmd, $publicKey);
+    if ($result['code'] !== 0) {
+        throw new RuntimeException('Unable to import recipient public key. ' . trim($result['stdout'] . "\n" . $result['stderr']));
+    }
+}
+
+function messages_encrypt_for_recipients(array $recipientPublicKeys, string $plaintext): string
+{
+    $keys = array_values(array_unique(array_filter(array_map(static fn($k) => trim((string)$k), $recipientPublicKeys), static fn($k) => $k !== '')));
+    if (!$keys || trim($plaintext) === '') {
         throw new RuntimeException('Missing recipient key material or message body.');
     }
 
@@ -65,74 +106,30 @@ function messages_encrypt_for_recipient(string $recipientPublicKey, string $plai
     @mkdir($tmpHome, 0700, true);
     @chmod($tmpHome, 0700);
 
-    $pubFile = $tmpDir . '/pub.asc';
-    $plainFile = $tmpDir . '/plain.txt';
-
-    file_put_contents($pubFile, $recipientPublicKey);
-    file_put_contents($plainFile, $plaintext);
-
     try {
-        $fingerprint = messages_import_public_key_and_get_fingerprint($tmpHome, $pubFile);
+        $fingerprints = [];
 
-        $encryptCmd = sprintf(
-            'GNUPGHOME=%s gpg --batch --yes --trust-model always --armor --encrypt -r %s %s 2>&1',
+        foreach ($keys as $key) {
+            $fingerprints[] = messages_fingerprint_from_public_key($tmpHome, $key);
+            messages_import_public_key($tmpHome, $key);
+        }
+
+        $recipientArgs = implode(' ', array_map(static fn($fpr) => '-r ' . escapeshellarg((string)$fpr), $fingerprints));
+        $cmd = sprintf(
+            'GNUPGHOME=%s gpg --batch --yes --trust-model always --armor --encrypt %s 2>&1',
             escapeshellarg($tmpHome),
-            escapeshellarg($fingerprint),
-            escapeshellarg($plainFile)
+            $recipientArgs
         );
 
-        $encryptOut = [];
-        $encryptCode = 0;
-        exec($encryptCmd, $encryptOut, $encryptCode);
-        $ciphertext = trim(implode("\n", $encryptOut));
+        $result = messages_run_command($cmd, $plaintext);
+        $ciphertext = trim($result['stdout']);
 
-        if ($encryptCode !== 0 || $ciphertext === '' || !str_contains($ciphertext, 'BEGIN PGP MESSAGE')) {
-            throw new RuntimeException('Unable to encrypt message for recipient. ' . $ciphertext);
+        if ($result['code'] !== 0 || $ciphertext === '' || !str_contains($ciphertext, 'BEGIN PGP MESSAGE')) {
+            throw new RuntimeException('Unable to encrypt message for recipients. ' . trim($result['stdout'] . "\n" . $result['stderr']));
         }
 
         return $ciphertext . PHP_EOL;
     } finally {
-        messages_cleanup_temp_files($tmpDir, $tmpHome, [$pubFile, $plainFile]);
+        messages_cleanup_temp_files($tmpDir, $tmpHome);
     }
-}
-
-function messages_decrypt_for_user(array $user, string $ciphertext, string $passphrase): ?string
-{
-    $username = (string)($user['username'] ?? '');
-    if ($username === '' || trim($ciphertext) === '') {
-        return null;
-    }
-
-    $gpgHome = messages_user_gnupg_home($username);
-    if (!is_dir($gpgHome)) {
-        return null;
-    }
-
-    $tmpDir = sys_get_temp_dir() . '/msgdec_' . bin2hex(random_bytes(8));
-    @mkdir($tmpDir, 0700, true);
-
-    $cipherFile = $tmpDir . '/cipher.asc';
-    $passFile = $tmpDir . '/pass.txt';
-    file_put_contents($cipherFile, $ciphertext);
-    file_put_contents($passFile, trim($passphrase) . PHP_EOL);
-    @chmod($passFile, 0600);
-
-    $cmd = sprintf(
-        'GNUPGHOME=%s gpg --batch --yes --pinentry-mode loopback --passphrase-file %s --decrypt %s 2>/dev/null',
-        escapeshellarg($gpgHome),
-        escapeshellarg($passFile),
-        escapeshellarg($cipherFile)
-    );
-
-    $plain = shell_exec($cmd);
-
-    @unlink($cipherFile);
-    @unlink($passFile);
-    @rmdir($tmpDir);
-
-    if (!is_string($plain) || trim($plain) === '') {
-        return null;
-    }
-
-    return $plain;
 }

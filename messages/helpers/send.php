@@ -50,23 +50,29 @@ function messages_load_participants_for_send(PDO $pdo, int $threadId, int $userI
     ];
 }
 
-function messages_encrypt_for_thread_participants(array $sender, array $recipient, string $body): array
+function messages_encrypt_for_thread_participants(array $sender, array $recipient, string $body): string
 {
-    $cipherRecipient = messages_encrypt_for_recipient((string)$recipient['pgp_public'], $body);
-    $cipherSender = messages_encrypt_for_recipient((string)$sender['pgp_public'], $body);
-
-    return [
-        'cipher_sender' => $cipherSender,
-        'cipher_recipient' => $cipherRecipient,
-    ];
+    return messages_encrypt_for_recipients([
+        (string)$sender['pgp_public'],
+        (string)$recipient['pgp_public'],
+    ], $body);
 }
 
-function messages_store_thread_message(PDO $pdo, int $threadId, int $senderId, int $recipientId, string $cipherSender, string $cipherRecipient): int
+function messages_store_thread_message(PDO $pdo, int $threadId, int $senderId, int $recipientId, string $ciphertext): int
 {
-    $stmt = $pdo->prepare(
-        'INSERT INTO messages (thread_id, sender_id, recipient_id, ciphertext_sender, ciphertext_recipient, created_at) VALUES (?, ?, ?, ?, ?, NOW())'
-    );
-    $stmt->execute([$threadId, $senderId, $recipientId, $cipherSender, $cipherRecipient]);
+    if (messages_has_single_ciphertext_column($pdo)) {
+        $stmt = $pdo->prepare(
+            'INSERT INTO messages (thread_id, sender_id, recipient_id, ciphertext, created_at) VALUES (?, ?, ?, ?, NOW())'
+        );
+        $stmt->execute([$threadId, $senderId, $recipientId, $ciphertext]);
+    } else {
+        // Backward compatibility for live DBs that still have dual columns.
+        $stmt = $pdo->prepare(
+            'INSERT INTO messages (thread_id, sender_id, recipient_id, ciphertext_sender, ciphertext_recipient, created_at) VALUES (?, ?, ?, ?, ?, NOW())'
+        );
+        $stmt->execute([$threadId, $senderId, $recipientId, $ciphertext, $ciphertext]);
+    }
+
     $msgId = (int)$pdo->lastInsertId();
 
     $stmt = $pdo->prepare('UPDATE message_threads SET last_message_id = ?, updated_at = NOW() WHERE id = ?');

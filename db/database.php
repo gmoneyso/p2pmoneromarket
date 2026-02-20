@@ -1,21 +1,41 @@
 <?php
 // db/database.php
 
+require_once __DIR__ . '/../includes/bootstrap.php';
 require_once __DIR__ . '/../env.php';
 
-try {
-    $pdo = new PDO(
-        "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",
-        DB_USER,
-        DB_PASS,
-        [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false,
-        ]
-    );
-} catch (PDOException $e) {
-    error_log('Database connection failed');
-    http_response_code(500);
-    exit('Database error');
+if (!function_exists('db_get_pdo')) {
+    /**
+     * Shared PDO factory/singleton for the whole application.
+     */
+    function db_get_pdo(): PDO
+    {
+        static $pdo = null;
+
+        if ($pdo instanceof PDO) {
+            return $pdo;
+        }
+
+        try {
+            $pdo = new PDO(
+                "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",
+                DB_USER,
+                DB_PASS,
+                [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_EMULATE_PREPARES => false,
+                ]
+            );
+        } catch (PDOException $e) {
+            error_log('Database connection failed');
+            http_response_code(500);
+            exit('Database error');
+        }
+
+        return $pdo;
+    }
 }
+
+// Backward-compatibility for legacy scripts expecting a local $pdo variable after include.
+$pdo = db_get_pdo();

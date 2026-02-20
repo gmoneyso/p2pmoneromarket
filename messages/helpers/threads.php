@@ -34,10 +34,35 @@ function messages_fetch_threads(PDO $pdo, int $userId): array
     return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 }
 
+function messages_has_single_ciphertext_column(PDO $pdo): bool
+{
+    static $cache = null;
+
+    if ($cache !== null) {
+        return $cache;
+    }
+
+    $stmt = $pdo->query("SHOW COLUMNS FROM messages LIKE 'ciphertext'");
+    $cache = (bool)$stmt->fetch(PDO::FETCH_ASSOC);
+
+    return $cache;
+}
+
 function messages_fetch_thread_messages(PDO $pdo, int $threadId, int $userId): array
 {
-    $stmt = $pdo->prepare("\n        SELECT id, sender_id, recipient_id, ciphertext_sender, ciphertext_recipient, created_at\n        FROM messages\n        WHERE thread_id = ?\n          AND (sender_id = ? OR recipient_id = ?)\n        ORDER BY id ASC\n        LIMIT 200\n    ");
-    $stmt->execute([$threadId, $userId, $userId]);
+    $selectCipher = messages_has_single_ciphertext_column($pdo)
+        ? 'ciphertext'
+        : 'CASE WHEN sender_id = ? THEN ciphertext_sender ELSE ciphertext_recipient END AS ciphertext';
+
+    $sql = "\n        SELECT id, sender_id, recipient_id, {$selectCipher}, created_at\n        FROM messages\n        WHERE thread_id = ?\n          AND (sender_id = ? OR recipient_id = ?)\n        ORDER BY id ASC\n        LIMIT 200\n    ";
+
+    $stmt = $pdo->prepare($sql);
+    if (messages_has_single_ciphertext_column($pdo)) {
+        $stmt->execute([$threadId, $userId, $userId]);
+    } else {
+        $stmt->execute([$userId, $threadId, $userId, $userId]);
+    }
+
     return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 }
 

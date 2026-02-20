@@ -23,19 +23,13 @@ if ($threadId <= 0 || $body === '') {
     exit;
 }
 
-if (!messages_is_unlocked($pdo, $userId)) {
-    flash_set('error', 'Unlock messages first.');
-    header('Location: /messages.php?thread_id=' . $threadId);
-    exit;
-}
-
 try {
     $sender = messages_load_sender_for_send($pdo, $userId);
     $participants = messages_load_participants_for_send($pdo, $threadId, $userId);
     $recipientId = (int)$participants['recipient_id'];
     $recipient = $participants['recipient'];
 
-    $encrypted = messages_encrypt_for_thread_participants($sender, $recipient, $body);
+    $ciphertext = messages_encrypt_for_thread_participants($sender, $recipient, $body);
 
     $pdo->beginTransaction();
     $msgId = messages_store_thread_message(
@@ -43,8 +37,7 @@ try {
         $threadId,
         $userId,
         $recipientId,
-        (string)$encrypted['cipher_sender'],
-        (string)$encrypted['cipher_recipient']
+        $ciphertext
     );
     $pdo->commit();
 

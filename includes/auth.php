@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/bootstrap.php';
+
 /*
 |--------------------------------------------------------------------------
 | Authentication Guard
@@ -25,8 +27,11 @@ function require_login(): void
     }
 
     // Centralized active-ban gate.
+    // Use the shared DB getter so auth does not depend on include order or global scope.
     try {
         require_once __DIR__ . '/../db/database.php';
+        $pdo = db_get_pdo();
+
         $stmt = $pdo->prepare("SELECT 1 FROM user_restrictions WHERE user_id = ? AND restriction_type = 'ban' AND status = 'active' AND (expires_at IS NULL OR expires_at > NOW()) LIMIT 1");
         $stmt->execute([$userId]);
         if ((bool)$stmt->fetchColumn()) {

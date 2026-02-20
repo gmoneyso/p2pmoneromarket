@@ -28,8 +28,6 @@ if ((int)$currentUser['backup_completed'] !== 1) {
     exit;
 }
 
-$isUnlocked = messages_is_unlocked($pdo, $userId);
-
 $targetUserId = (int)($_GET['user_id'] ?? 0);
 $tradeId = (int)($_GET['trade_id'] ?? 0);
 $threadId = (int)($_GET['thread_id'] ?? 0);
@@ -62,28 +60,18 @@ foreach ($threads as $t) {
 
 $messages = [];
 $renderedMessages = [];
-$hasLegacyEncrypted = false;
-
-if ($activeThread && $isUnlocked) {
+if ($activeThread) {
     $messages = messages_fetch_thread_messages($pdo, (int)$activeThread['id'], $userId);
 
     foreach ($messages as $m) {
         $mine = (int)$m['sender_id'] === $userId;
-        $cipher = $mine ? (string)$m['ciphertext_sender'] : (string)$m['ciphertext_recipient'];
-        $plain = messages_decrypt_for_user($currentUser, $cipher, (string)($_SESSION['messages_unlock_passphrase'] ?? ''));
-
-        $isEncryptedFallback = $plain === null;
-        if ($isEncryptedFallback) {
-            $hasLegacyEncrypted = true;
-        }
+        $cipher = (string)$m['ciphertext'];
 
         $renderedMessages[] = [
             'id' => (int)$m['id'],
             'mine' => $mine,
             'created_at' => (string)$m['created_at'],
-            'plain' => $plain,
             'cipher' => $cipher,
-            'fallback' => $isEncryptedFallback,
         ];
     }
 }
@@ -293,10 +281,6 @@ if ($activeThread && $isUnlocked) {
     resize: vertical;
     margin: 0;
 }
-.unlock-box {
-    max-width: 520px;
-    margin: 24px auto;
-}
 @media (max-width: 960px) {
     .messages-wrap {
         grid-template-columns: 1fr;
@@ -334,27 +318,10 @@ if ($activeThread && $isUnlocked) {
 <body>
 <?php require __DIR__ . '/assets/header.php'; ?>
 
-<?php if (!$isUnlocked): ?>
-    <div class="container unlock-box card">
-        <h2>Unlock Secure Messages</h2>
-        <p class="note" style="text-align:left;">Enter your backup passphrase to unlock message encryption/decryption for 72 hours.</p>
-        <form method="post" action="/messages/unlock.php" class="msg-compose">
-            <input type="hidden" name="return" value="<?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? '/messages.php') ?>">
-            <label>Backup passphrase
-                <input type="password" name="passphrase" required autocomplete="off">
-            </label>
-            <button class="btn" type="submit">Unlock Messages (72h)</button>
-        </form>
-    </div>
-<?php else: ?>
-    <div class="container messages-wrap">
+<div class="container messages-wrap">
         <aside class="card messages-sidebar">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;">
                 <h3 style="margin:0;">Conversations</h3>
-                <form method="post" action="/messages/lock.php" style="margin:0;">
-                    <input type="hidden" name="return" value="<?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? '/messages.php') ?>">
-                    <button type="submit" class="msg-btn-sm">Lock</button>
-                </form>
             </div>
 
             <?php if (!$threads): ?>
@@ -396,11 +363,9 @@ if ($activeThread && $isUnlocked) {
                 </header>
 
                 <div class="chat-body">
-                    <?php if ($hasLegacyEncrypted): ?>
-                        <div class="chat-notice">
-                            Some messages cannot be decrypted with your current keys. Copy the encrypted block and decrypt offline with your previous key/passphrase.
-                        </div>
-                    <?php endif; ?>
+                    <div class="chat-notice">
+                        Phase 1 mode: messages are stored encrypted and currently displayed as ciphertext only.
+                    </div>
 
                     <?php if (!$renderedMessages): ?>
                         <p class="chat-empty">No messages yet.</p>
@@ -408,23 +373,18 @@ if ($activeThread && $isUnlocked) {
                         <?php foreach ($renderedMessages as $row): ?>
                             <div class="message-row <?= $row['mine'] ? 'mine' : 'theirs' ?>">
                                 <article class="msg-bubble <?= $row['mine'] ? 'mine' : 'theirs' ?>">
-                                    <?php if (!$row['fallback']): ?>
-                                        <div class="msg-text"><?= nl2br(htmlspecialchars((string)$row['plain'])) ?></div>
-                                    <?php else: ?>
-                                        <div class="msg-text"><strong>Encrypted message</strong></div>
-                                        <div class="msg-fallback">
-                                            <p class="msg-fallback-note">Cannot decrypt with current key/passphrase (likely encrypted with older keys).</p>
-                                            <pre class="msg-cipher" id="cipher-<?= $row['id'] ?>"><?= htmlspecialchars($row['cipher']) ?></pre>
-                                            <div class="msg-fallback-actions">
-                                                <button
-                                                    type="button"
-                                                    class="msg-btn-sm"
-                                                    data-copy-target="cipher-<?= $row['id'] ?>"
-                                                    onclick="copyCiphertext(this)"
-                                                >Copy encrypted block</button>
-                                            </div>
+                                    <div class="msg-text"><strong>Encrypted message</strong></div>
+                                    <div class="msg-fallback">
+                                        <pre class="msg-cipher" id="cipher-<?= $row['id'] ?>"><?= htmlspecialchars($row['cipher']) ?></pre>
+                                        <div class="msg-fallback-actions">
+                                            <button
+                                                type="button"
+                                                class="msg-btn-sm"
+                                                data-copy-target="cipher-<?= $row['id'] ?>"
+                                                onclick="copyCiphertext(this)"
+                                            >Copy encrypted block</button>
                                         </div>
-                                    <?php endif; ?>
+                                    </div>
                                     <div class="msg-time"><?= htmlspecialchars($row['created_at']) ?></div>
                                 </article>
                             </div>
@@ -443,8 +403,6 @@ if ($activeThread && $isUnlocked) {
             <?php endif; ?>
         </section>
     </div>
-<?php endif; ?>
-
 <script>
 function copyCiphertext(button) {
     const id = button.getAttribute('data-copy-target');
