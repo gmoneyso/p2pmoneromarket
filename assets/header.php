@@ -8,10 +8,12 @@ $is_logged_in = isset($_SESSION['user_id']);
 $headerUnreadNotifications = 0;
 $headerUnreadMessages = 0;
 $headerCanAccessAdmin = false;
+$headerCanAccessModerator = false;
 
 if ($is_logged_in && isset($pdo) && $pdo instanceof PDO) {
     try {
         $sessionUserId = (int)$_SESSION['user_id'];
+        staff_sync_super_admin_role($pdo);
 
         $stmt = $pdo->prepare('SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0');
         $stmt->execute([$sessionUserId]);
@@ -21,11 +23,13 @@ if ($is_logged_in && isset($pdo) && $pdo instanceof PDO) {
         $stmt->execute([$sessionUserId]);
         $headerUnreadMessages = (int)$stmt->fetchColumn();
 
-        $headerCanAccessAdmin = staff_is_moderator($pdo, $sessionUserId);
+        $headerCanAccessAdmin = staff_is_super_admin($pdo, $sessionUserId);
+        $headerCanAccessModerator = staff_is_moderator($pdo, $sessionUserId);
     } catch (Throwable $e) {
         $headerUnreadNotifications = 0;
         $headerUnreadMessages = 0;
         $headerCanAccessAdmin = false;
+        $headerCanAccessModerator = false;
     }
 }
 ?>
@@ -73,6 +77,14 @@ if ($is_logged_in && isset($pdo) && $pdo instanceof PDO) {
                     <span class="nav-badge"><?= $headerUnreadNotifications > 99 ? '99+' : $headerUnreadNotifications ?></span>
                 <?php endif; ?>
             </a>
+
+
+            <?php if ($headerCanAccessModerator): ?>
+                <a href="/moderator/dashboard.php" class="nav-item" title="Moderator">
+                    <span class="icon" aria-hidden="true">🧭</span>
+                    <span class="text">Moderator</span>
+                </a>
+            <?php endif; ?>
 
             <?php if ($headerCanAccessAdmin): ?>
                 <a href="/admin/dashboard.php" class="nav-item" title="Admin">

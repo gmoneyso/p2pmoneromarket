@@ -36,7 +36,7 @@ CREATE TABLE `admin_actions` (
   KEY `idx_admin_actions_target` (`target_type`,`target_id`),
   CONSTRAINT `fk_admin_actions_actor` FOREIGN KEY (`actor_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `chk_admin_actions_details_json` CHECK (json_valid(`details_json`))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -45,6 +45,10 @@ CREATE TABLE `admin_actions` (
 
 LOCK TABLES `admin_actions` WRITE;
 /*!40000 ALTER TABLE `admin_actions` DISABLE KEYS */;
+INSERT INTO `admin_actions` VALUES
+(1,1,'moderator_promote','user',2,'{\"reason\":\"manual role update\"}','2026-02-20 07:55:39'),
+(2,1,'moderator_demote','user',2,'{\"reason\":\"manual role update\"}','2026-02-20 07:56:00'),
+(3,1,'moderator_promote','user',2,'{\"reason\":\"manual role update\"}','2026-02-20 07:56:56');
 /*!40000 ALTER TABLE `admin_actions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -255,6 +259,8 @@ CREATE TABLE `message_unlock_attempts` (
 
 LOCK TABLES `message_unlock_attempts` WRITE;
 /*!40000 ALTER TABLE `message_unlock_attempts` DISABLE KEYS */;
+INSERT INTO `message_unlock_attempts` VALUES
+(2,0,NULL,'2026-02-20 08:00:19');
 /*!40000 ALTER TABLE `message_unlock_attempts` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -276,7 +282,7 @@ CREATE TABLE `message_unlock_sessions` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_unlock_token` (`user_id`,`token_hash`),
   CONSTRAINT `fk_unlock_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -286,7 +292,8 @@ CREATE TABLE `message_unlock_sessions` (
 LOCK TABLES `message_unlock_sessions` WRITE;
 /*!40000 ALTER TABLE `message_unlock_sessions` DISABLE KEYS */;
 INSERT INTO `message_unlock_sessions` VALUES
-(1,2,'236c6ffd3268fb0aff87031a65cca47f49b960cfd00efad5294fcd9e31e9279d','$2y$10$bj2me4vjdh4wZ0R9jL5BCOePtj/jgU0Ap/1RUmxvTlBFxFyhJXmwi','2026-02-21 20:04:52','2026-02-18 20:04:52','2026-02-20 04:43:29');
+(1,2,'236c6ffd3268fb0aff87031a65cca47f49b960cfd00efad5294fcd9e31e9279d','$2y$10$bj2me4vjdh4wZ0R9jL5BCOePtj/jgU0Ap/1RUmxvTlBFxFyhJXmwi','2026-02-21 20:04:52','2026-02-18 20:04:52','2026-02-20 04:43:29'),
+(2,2,'5eee48cdbf939e3a35e8fdb61c08a7f2e02f4cf97e3b2e239f0fe641f2adf17c','$2y$10$yjCEriGqWyYN.ZMgCd13Re7glJOZp6O249NAzipKOLSsNHrQWD/gu','2026-02-23 08:00:19','2026-02-20 08:00:19',NULL);
 /*!40000 ALTER TABLE `message_unlock_sessions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -450,7 +457,7 @@ CREATE TABLE `staff_role_events` (
   KEY `idx_staff_role_events_actor_created` (`changed_by_user_id`,`created_at`),
   CONSTRAINT `fk_staff_role_events_actor` FOREIGN KEY (`changed_by_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_staff_role_events_target` FOREIGN KEY (`target_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -459,6 +466,10 @@ CREATE TABLE `staff_role_events` (
 
 LOCK TABLES `staff_role_events` WRITE;
 /*!40000 ALTER TABLE `staff_role_events` DISABLE KEYS */;
+INSERT INTO `staff_role_events` VALUES
+(1,2,'none','moderator',1,'manual role update','2026-02-20 07:55:39'),
+(2,2,'moderator','none',1,'manual role update','2026-02-20 07:56:00'),
+(3,2,'none','moderator',1,'manual role update','2026-02-20 07:56:56');
 /*!40000 ALTER TABLE `staff_role_events` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -478,7 +489,7 @@ CREATE TABLE `staff_roles` (
   UNIQUE KEY `uniq_staff_user` (`user_id`),
   KEY `idx_staff_role` (`role`),
   CONSTRAINT `fk_staff_roles_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=58 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -488,7 +499,8 @@ CREATE TABLE `staff_roles` (
 LOCK TABLES `staff_roles` WRITE;
 /*!40000 ALTER TABLE `staff_roles` DISABLE KEYS */;
 INSERT INTO `staff_roles` VALUES
-(1,1,'admin','2026-01-17 13:12:20');
+(1,1,'admin','2026-01-17 13:12:20'),
+(38,2,'moderator','2026-02-20 07:56:56');
 /*!40000 ALTER TABLE `staff_roles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -943,4 +955,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-02-20  7:23:28
+-- Dump completed on 2026-02-20  8:07:21
