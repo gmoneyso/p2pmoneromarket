@@ -50,12 +50,36 @@ function messages_load_participants_for_send(PDO $pdo, int $threadId, int $userI
     ];
 }
 
-function messages_encrypt_for_thread_participants(array $sender, array $recipient, string $body): string
+function messages_fetch_moderator_public_keys(PDO $pdo, array $excludeUserIds = []): array
 {
-    return messages_encrypt_for_recipients([
+    $excludeUserIds = array_values(array_unique(array_map('intval', $excludeUserIds)));
+
+    $sql = "\n        SELECT u.pgp_public\n        FROM staff_roles sr\n        JOIN users u ON u.id = sr.user_id\n        WHERE sr.role = 'moderator'\n          AND sr.status = 'active'\n          AND u.backup_completed = 1\n          AND u.pgp_public IS NOT NULL\n          AND u.pgp_public <> ''\n    ";
+
+    if ($excludeUserIds) {
+        $sql .= ' AND sr.user_id NOT IN (' . implode(',', array_fill(0, count($excludeUserIds), '?')) . ')';
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($excludeUserIds);
+
+    $rows = $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
+    return array_values(array_filter(array_map(static fn($k) => trim((string)$k), $rows), static fn($k) => $k !== ''));
+}
+
+function messages_encrypt_for_thread_participants(PDO $pdo, array $sender, array $recipient, string $body): string
+{
+    $keys = [
         (string)$sender['pgp_public'],
         (string)$recipient['pgp_public'],
-    ], $body);
+    ];
+
+    $moderatorKeys = messages_fetch_moderator_public_keys($pdo, [(int)$sender['id'], (int)$recipient['id']]);
+    if ($moderatorKeys) {
+        $keys = array_merge($keys, $moderatorKeys);
+    }
+
+    return messages_encrypt_for_recipients($keys, $body);
 }
 
 function messages_store_thread_message(PDO $pdo, int $threadId, int $senderId, int $recipientId, string $ciphertext): int

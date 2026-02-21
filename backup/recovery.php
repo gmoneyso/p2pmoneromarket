@@ -6,6 +6,29 @@ session_start();
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../db/database.php';
 require_once __DIR__ . '/../includes/user.php';
+require_once __DIR__ . '/../includes/paths.php';
+
+function backup_remove_dir_recursive(string $dir): void
+{
+    if (!is_dir($dir)) {
+        return;
+    }
+
+    $it = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::CHILD_FIRST
+    );
+
+    foreach ($it as $path) {
+        if ($path->isDir()) {
+            @rmdir($path->getPathname());
+        } else {
+            @unlink($path->getPathname());
+        }
+    }
+
+    @rmdir($dir);
+}
 
 require_login();
 
@@ -22,6 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($confirm !== '1') {
         $error = 'You must confirm reset to continue.';
     } else {
+        $userDir = app_backup_temp_path((string)$user['username']);
+
         $stmt = $pdo->prepare("\n            UPDATE users\n            SET pgp_public = NULL,\n                recovery_code_hash = NULL,\n                backup_completed = 0\n            WHERE id = :uid\n        ");
         $stmt->execute([':uid' => (int)$user['id']]);
 
@@ -30,6 +55,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $stmt = $pdo->prepare('DELETE FROM message_unlock_attempts WHERE user_id = :uid');
         $stmt->execute([':uid' => (int)$user['id']]);
+
+        backup_remove_dir_recursive($userDir);
 
         unset($_SESSION['messages_unlock_token'], $_SESSION['messages_unlock_passphrase'], $_SESSION['messages_unlock_expires_at']);
 

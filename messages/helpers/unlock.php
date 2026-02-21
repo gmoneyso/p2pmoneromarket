@@ -16,12 +16,7 @@ function messages_verify_passphrase(PDO $pdo, int $userId, string $passphrase): 
         return false;
     }
 
-    if (password_verify($raw, $hash)) {
-        return true;
-    }
-
-    $normalized = messages_normalize_passphrase($raw);
-    return $normalized !== '' && $normalized !== $raw && password_verify($normalized, $hash);
+    return password_verify($raw, $hash);
 }
 
 function messages_get_attempt_state(PDO $pdo, int $userId): array
@@ -92,12 +87,12 @@ function messages_issue_unlock_session(PDO $pdo, int $userId, string $passphrase
     $token = bin2hex(random_bytes(32));
     $tokenHash = hash('sha256', $token);
 
-    $stmt = $pdo->prepare("\n        INSERT INTO message_unlock_sessions (user_id, token_hash, recovery_hash_snapshot, expires_at, created_at, revoked_at)\n        VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL ? HOUR), NOW(), NULL)\n    ");
-    $stmt->execute([$userId, $tokenHash, $hashSnapshot, MESSAGES_UNLOCK_HOURS]);
+    $stmt = $pdo->prepare("\n        INSERT INTO message_unlock_sessions (user_id, token_hash, recovery_hash_snapshot, expires_at, created_at, revoked_at)\n        VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL ? MINUTE), NOW(), NULL)\n    ");
+    $stmt->execute([$userId, $tokenHash, $hashSnapshot, MESSAGES_UNLOCK_MINUTES]);
 
     $_SESSION['messages_unlock_token'] = $token;
     $_SESSION['messages_unlock_passphrase'] = trim($passphrase);
-    $_SESSION['messages_unlock_expires_at'] = time() + (MESSAGES_UNLOCK_HOURS * 3600);
+    $_SESSION['messages_unlock_expires_at'] = time() + (MESSAGES_UNLOCK_MINUTES * 60);
 
     return $token;
 }

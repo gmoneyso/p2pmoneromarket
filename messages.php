@@ -58,21 +58,103 @@ foreach ($threads as $t) {
     }
 }
 
+$unlockError = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && (string)($_POST['action'] ?? '') === 'unlock_thread') {
+    $unlockThreadId = (int)($_POST['thread_id'] ?? 0);
+    $unlockPassphrase = (string)($_POST['passphrase'] ?? '');
+
+    if ($unlockThreadId <= 0 || trim($unlockPassphrase) === '') {
+        $unlockError = 'Passphrase is required.';
+        messages_log_error('Unlock validation failed', [
+            'user_id' => $userId,
+            'thread_id' => $unlockThreadId,
+            'reason' => 'missing_passphrase_or_thread',
+        ]);
+    } elseif (!messages_thread_belongs_to_user($pdo, $unlockThreadId, $userId)) {
+        $unlockError = 'Conversation not found.';
+        messages_log_error('Unlock rejected for non-owned thread', [
+            'user_id' => $userId,
+            'thread_id' => $unlockThreadId,
+        ]);
+    } else {
+        $state = messages_get_attempt_state($pdo, $userId);
+        if (messages_lock_is_active($state['locked_until'])) {
+            $unlockError = 'Too many failed attempts. Try again later.';
+            messages_log_error('Unlock blocked by lockout', [
+                'user_id' => $userId,
+                'thread_id' => $unlockThreadId,
+                'locked_until' => $state['locked_until'],
+            ]);
+        } elseif (!messages_verify_passphrase($pdo, $userId, $unlockPassphrase)) {
+            $next = messages_record_failed_attempt($pdo, $userId);
+            if (messages_lock_is_active($next['locked_until'] ?? null)) {
+                $unlockError = 'Too many failed attempts. Locked for 30 minutes.';
+            } else {
+                $unlockError = 'Wrong passphrase. Try again.';
+            }
+            messages_log_error('Unlock passphrase verification failed', [
+                'user_id' => $userId,
+                'thread_id' => $unlockThreadId,
+                'failed_count' => (int)($next['failed_count'] ?? 0),
+                'locked_until' => $next['locked_until'] ?? null,
+            ]);
+        } else {
+            messages_reset_attempts($pdo, $userId);
+            messages_issue_unlock_session($pdo, $userId, $unlockPassphrase);
+            header('Location: /messages.php?thread_id=' . $unlockThreadId);
+            exit;
+        }
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && (string)($_POST['action'] ?? '') === 'lock_thread') {
+    messages_revoke_unlock_session($pdo, $userId);
+    $lockThreadId = (int)($_POST['thread_id'] ?? 0);
+    header('Location: /messages.php' . ($lockThreadId > 0 ? ('?thread_id=' . $lockThreadId) : ''));
+    exit;
+}
+
+$isUnlocked = messages_is_unlocked($pdo, $userId);
+$unlockPassphrase = (string)($_SESSION['messages_unlock_passphrase'] ?? '');
+
+$beforeId = (int)($_GET['before_id'] ?? 0);
+if ($beforeId <= 0) {
+    $beforeId = null;
+}
+
 $messages = [];
 $renderedMessages = [];
+$hasMore = false;
+$nextBeforeId = null;
 if ($activeThread) {
-    $messages = messages_fetch_thread_messages($pdo, (int)$activeThread['id'], $userId);
+    $messages = messages_fetch_thread_messages($pdo, (int)$activeThread['id'], $userId, 9, $beforeId);
+
+    if ($messages === []) {
+        messages_log_error('No messages fetched for thread', [
+            'user_id' => $userId,
+            'thread_id' => (int)$activeThread['id'],
+            'before_id' => $beforeId,
+            'is_unlocked' => $isUnlocked,
+        ]);
+    }
 
     foreach ($messages as $m) {
         $mine = (int)$m['sender_id'] === $userId;
         $cipher = (string)$m['ciphertext'];
+        $plain = $isUnlocked ? messages_decrypt_for_user($currentUser, $cipher, $unlockPassphrase) : null;
 
         $renderedMessages[] = [
             'id' => (int)$m['id'],
             'mine' => $mine,
             'created_at' => (string)$m['created_at'],
             'cipher' => $cipher,
+            'plain' => $plain,
         ];
+    }
+
+    if ($renderedMessages) {
+        $nextBeforeId = (int)$renderedMessages[0]['id'];
+        $hasMore = messages_thread_has_older_messages($pdo, (int)$activeThread['id'], $userId, $nextBeforeId);
     }
 }
 ?>
@@ -281,6 +363,36 @@ if ($activeThread) {
     resize: vertical;
     margin: 0;
 }
+
+.unlock-wrap {
+    max-width: 520px;
+    margin: 24px auto;
+    padding: 14px;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    background: #111;
+}
+.unlock-wrap label {
+    display: block;
+    font-size: .83rem;
+    color: #cfcfcf;
+    margin-bottom: 7px;
+}
+.unlock-input {
+    width: 100%;
+    background: #0f0f0f;
+    border: 1px solid #2e2e2e;
+    color: #e6e6e6;
+    border-radius: 8px;
+    padding: 10px 11px;
+    margin: 0 0 10px;
+}
+.unlock-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(255,102,0,.15);
+}
+
 @media (max-width: 960px) {
     .messages-wrap {
         grid-template-columns: 1fr;
@@ -322,6 +434,13 @@ if ($activeThread) {
         <aside class="card messages-sidebar">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;">
                 <h3 style="margin:0;">Conversations</h3>
+                <?php if ($isUnlocked): ?>
+                    <form method="post" style="margin:0;">
+                        <input type="hidden" name="action" value="lock_thread">
+                        <input type="hidden" name="thread_id" value="<?= (int)$threadId ?>">
+                        <button type="submit" class="msg-btn-sm">Lock</button>
+                    </form>
+                <?php endif; ?>
             </div>
 
             <?php if (!$threads): ?>
@@ -363,28 +482,49 @@ if ($activeThread) {
                 </header>
 
                 <div class="chat-body">
-                    <div class="chat-notice">
-                        Phase 1 mode: messages are stored encrypted and currently displayed as ciphertext only.
-                    </div>
+                    <?php if ($unlockError !== ''): ?>
+                        <div class="chat-notice"><?= htmlspecialchars($unlockError) ?></div>
+                    <?php endif; ?>
 
-                    <?php if (!$renderedMessages): ?>
+                    <?php if (!$isUnlocked): ?>
+                        <div class="unlock-wrap">
+                            <h3 style="margin:0 0 8px;">Unlock Messages</h3>
+                            <p class="note" style="text-align:left;margin:0 0 10px;">Enter your passphrase to decrypt this thread. Session stays unlocked for 30 minutes.</p>
+                            <form method="post" action="/messages.php?thread_id=<?= (int)$activeThread['id'] ?>">
+                                <input type="hidden" name="action" value="unlock_thread">
+                                <input type="hidden" name="thread_id" value="<?= (int)$activeThread['id'] ?>">
+                                <label for="msg-passphrase">Passphrase</label>
+                                <input id="msg-passphrase" class="unlock-input" type="password" name="passphrase" required autocomplete="off">
+                                <button type="submit" class="msg-btn-sm msg-btn-accent">Unlock (30m)</button>
+                            </form>
+                        </div>
+                    <?php elseif (!$renderedMessages): ?>
                         <p class="chat-empty">No messages yet.</p>
                     <?php else: ?>
+                        <?php if ($hasMore && $nextBeforeId !== null): ?>
+                            <div style="margin-bottom:8px;">
+                                <a class="msg-btn-sm" style="text-decoration:none;display:inline-block;" href="/messages.php?thread_id=<?= (int)$activeThread['id'] ?>&before_id=<?= (int)$nextBeforeId ?>">Load older messages</a>
+                            </div>
+                        <?php endif; ?>
+
                         <?php foreach ($renderedMessages as $row): ?>
                             <div class="message-row <?= $row['mine'] ? 'mine' : 'theirs' ?>">
                                 <article class="msg-bubble <?= $row['mine'] ? 'mine' : 'theirs' ?>">
-                                    <div class="msg-text"><strong>Encrypted message</strong></div>
-                                    <div class="msg-fallback">
-                                        <pre class="msg-cipher" id="cipher-<?= $row['id'] ?>"><?= htmlspecialchars($row['cipher']) ?></pre>
-                                        <div class="msg-fallback-actions">
-                                            <button
-                                                type="button"
-                                                class="msg-btn-sm"
-                                                data-copy-target="cipher-<?= $row['id'] ?>"
-                                                onclick="copyCiphertext(this)"
-                                            >Copy encrypted block</button>
+                                    <?php if (!empty($row['plain'])): ?>
+                                        <div class="msg-text"><?= nl2br(htmlspecialchars((string)$row['plain'])) ?></div>
+                                    <?php else: ?>
+                                        <div class="msg-fallback">
+                                            <pre class="msg-cipher" id="cipher-<?= $row['id'] ?>"><?= htmlspecialchars($row['cipher']) ?></pre>
+                                            <div class="msg-fallback-actions">
+                                                <button
+                                                    type="button"
+                                                    class="msg-btn-sm"
+                                                    data-copy-target="cipher-<?= $row['id'] ?>"
+                                                    onclick="copyCiphertext(this)"
+                                                >Copy encrypted block</button>
+                                            </div>
                                         </div>
-                                    </div>
+                                    <?php endif; ?>
                                     <div class="msg-time"><?= htmlspecialchars($row['created_at']) ?></div>
                                 </article>
                             </div>

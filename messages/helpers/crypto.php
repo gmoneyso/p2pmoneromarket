@@ -133,3 +133,49 @@ function messages_encrypt_for_recipients(array $recipientPublicKeys, string $pla
         messages_cleanup_temp_files($tmpDir, $tmpHome);
     }
 }
+
+
+function messages_decrypt_for_user(array $user, string $ciphertext, string $passphrase): ?string
+{
+    $username = trim((string)($user['username'] ?? ''));
+    if ($username === '' || trim($ciphertext) === '' || trim($passphrase) === '') {
+        return null;
+    }
+
+    $gpgHome = messages_user_gnupg_home($username);
+    if (!is_dir($gpgHome)) {
+        return null;
+    }
+
+    $passFile = tempnam(sys_get_temp_dir(), 'msgpass_');
+    if ($passFile === false) {
+        return null;
+    }
+
+    file_put_contents($passFile, trim($passphrase) . PHP_EOL);
+    @chmod($passFile, 0600);
+
+    try {
+        $cmd = sprintf(
+            'GNUPGHOME=%s gpg --batch --yes --pinentry-mode loopback --passphrase-file %s --decrypt 2>&1',
+            escapeshellarg($gpgHome),
+            escapeshellarg($passFile)
+        );
+
+        $result = messages_run_command($cmd, $ciphertext);
+        if ($result['code'] !== 0) {
+            messages_log_error('Message decrypt failed', [
+                'user' => $username,
+                'gpg_home' => $gpgHome,
+                'gpg_exit_code' => $result['code'],
+                'gpg_error' => trim((string)$result['stderr']),
+            ]);
+            return null;
+        }
+
+        $plain = trim($result['stdout']);
+        return $plain === '' ? null : $plain;
+    } finally {
+        @unlink($passFile);
+    }
+}

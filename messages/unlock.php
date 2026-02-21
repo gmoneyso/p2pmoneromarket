@@ -19,6 +19,7 @@ $stmt->execute([$userId]);
 $backupCompleted = (int)($stmt->fetchColumn() ?: 0);
 
 if ($backupCompleted !== 1) {
+    messages_log_error('Unlock blocked: backup not completed', ['user_id' => $userId]);
     flash_set('error', 'Complete backup setup before unlocking messages.');
     header('Location: /dashboard.php');
     exit;
@@ -26,6 +27,10 @@ if ($backupCompleted !== 1) {
 
 $state = messages_get_attempt_state($pdo, $userId);
 if (messages_lock_is_active($state['locked_until'])) {
+    messages_log_error('Unlock blocked by lockout', [
+        'user_id' => $userId,
+        'locked_until' => $state['locked_until'],
+    ]);
     flash_set('error', 'Too many failed attempts. Try again later.');
     header('Location: ' . $return);
     exit;
@@ -33,6 +38,11 @@ if (messages_lock_is_active($state['locked_until'])) {
 
 if (!messages_verify_passphrase($pdo, $userId, $passphrase)) {
     $next = messages_record_failed_attempt($pdo, $userId);
+    messages_log_error('Unlock passphrase verification failed', [
+        'user_id' => $userId,
+        'failed_count' => (int)($next['failed_count'] ?? 0),
+        'locked_until' => $next['locked_until'] ?? null,
+    ]);
     if (messages_lock_is_active($next['locked_until'] ?? null)) {
         flash_set('error', 'Too many failed attempts. Locked for 30 minutes.');
     } else {
@@ -44,6 +54,6 @@ if (!messages_verify_passphrase($pdo, $userId, $passphrase)) {
 
 messages_reset_attempts($pdo, $userId);
 messages_issue_unlock_session($pdo, $userId, $passphrase);
-flash_set('success', 'Messages unlocked for 72 hours.');
+flash_set('success', 'Messages unlocked for 30 minutes.');
 header('Location: ' . $return);
 exit;

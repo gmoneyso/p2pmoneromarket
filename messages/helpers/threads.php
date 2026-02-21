@@ -48,22 +48,45 @@ function messages_has_single_ciphertext_column(PDO $pdo): bool
     return $cache;
 }
 
-function messages_fetch_thread_messages(PDO $pdo, int $threadId, int $userId): array
+function messages_fetch_thread_messages(PDO $pdo, int $threadId, int $userId, int $limit = 9, ?int $beforeId = null): array
 {
+    $limit = max(1, min(50, $limit));
+
     $selectCipher = messages_has_single_ciphertext_column($pdo)
         ? 'ciphertext'
         : 'CASE WHEN sender_id = ? THEN ciphertext_sender ELSE ciphertext_recipient END AS ciphertext';
 
-    $sql = "\n        SELECT id, sender_id, recipient_id, {$selectCipher}, created_at\n        FROM messages\n        WHERE thread_id = ?\n          AND (sender_id = ? OR recipient_id = ?)\n        ORDER BY id ASC\n        LIMIT 200\n    ";
+    $beforeClause = $beforeId !== null && $beforeId > 0 ? ' AND id < ?' : '';
+    $sql = "\n        SELECT id, sender_id, recipient_id, {$selectCipher}, created_at\n        FROM messages\n        WHERE thread_id = ?\n          AND (sender_id = ? OR recipient_id = ?)\n          {$beforeClause}\n        ORDER BY id DESC\n        LIMIT {$limit}\n    ";
 
     $stmt = $pdo->prepare($sql);
+
     if (messages_has_single_ciphertext_column($pdo)) {
-        $stmt->execute([$threadId, $userId, $userId]);
+        $params = [$threadId, $userId, $userId];
     } else {
-        $stmt->execute([$userId, $threadId, $userId, $userId]);
+        $params = [$userId, $threadId, $userId, $userId];
     }
 
-    return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    if ($beforeId !== null && $beforeId > 0) {
+        $params[] = $beforeId;
+    }
+
+    $stmt->execute($params);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+    return array_reverse($rows);
+}
+
+function messages_thread_has_older_messages(PDO $pdo, int $threadId, int $userId, int $beforeId): bool
+{
+    if ($beforeId <= 0) {
+        return false;
+    }
+
+    $stmt = $pdo->prepare("\n        SELECT 1\n        FROM messages\n        WHERE thread_id = ?\n          AND (sender_id = ? OR recipient_id = ?)\n          AND id < ?\n        LIMIT 1\n    ");
+    $stmt->execute([$threadId, $userId, $userId, $beforeId]);
+
+    return (bool)$stmt->fetchColumn();
 }
 
 function messages_thread_belongs_to_user(PDO $pdo, int $threadId, int $userId): bool

@@ -29,7 +29,7 @@ try {
     $recipientId = (int)$participants['recipient_id'];
     $recipient = $participants['recipient'];
 
-    $ciphertext = messages_encrypt_for_thread_participants($sender, $recipient, $body);
+    $ciphertext = messages_encrypt_for_thread_participants($pdo, $sender, $recipient, $body);
 
     $pdo->beginTransaction();
     $msgId = messages_store_thread_message(
@@ -60,6 +60,12 @@ try {
     }
 
     log_error('Message send failed', [
+        'user_id' => $userId,
+        'thread_id' => $threadId,
+        'error' => $e->getMessage(),
+    ]);
+
+    messages_log_error('Message send failed', [
         'user_id' => $userId,
         'thread_id' => $threadId,
         'error' => $e->getMessage(),

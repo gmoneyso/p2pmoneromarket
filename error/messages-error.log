@@ -1,0 +1,19 @@
+{"time":"2026-02-21 08:10:15","ip":"127.0.0.1","msg":"Message decrypt failed","ctx":{"user":"anonwan","gpg_home":"/var/www/moneromarket/backup/temp/anonwan/.gnupg","gpg_exit_code":2,"gpg_error":""}}
+{"time":"2026-02-21 08:10:15","ip":"127.0.0.1","msg":"Message decrypt failed","ctx":{"user":"anonwan","gpg_home":"/var/www/moneromarket/backup/temp/anonwan/.gnupg","gpg_exit_code":2,"gpg_error":""}}
+{"time":"2026-02-21 08:10:15","ip":"127.0.0.1","msg":"Message decrypt failed","ctx":{"user":"anonwan","gpg_home":"/var/www/moneromarket/backup/temp/anonwan/.gnupg","gpg_exit_code":2,"gpg_error":""}}
+{"time":"2026-02-21 08:10:20","ip":"127.0.0.1","msg":"No messages fetched for thread","ctx":{"user_id":2,"thread_id":3,"before_id":null,"is_unlocked":true}}
+{"time":"2026-02-21 08:10:31","ip":"127.0.0.1","msg":"Message send failed","ctx":{"user_id":2,"thread_id":3,"error":"SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sr.status' in 'WHERE'"}}
+{"time":"2026-02-21 08:10:32","ip":"127.0.0.1","msg":"No messages fetched for thread","ctx":{"user_id":2,"thread_id":3,"before_id":null,"is_unlocked":true}}
+{"time":"2026-02-21 08:11:38","ip":"127.0.0.1","msg":"No messages fetched for thread","ctx":{"user_id":2,"thread_id":3,"before_id":null,"is_unlocked":false}}
+{"time":"2026-02-21 08:12:21","ip":"127.0.0.1","msg":"No messages fetched for thread","ctx":{"user_id":2,"thread_id":3,"before_id":null,"is_unlocked":true}}
+{"time":"2026-02-21 08:12:27","ip":"127.0.0.1","msg":"Message decrypt failed","ctx":{"user":"anonwan","gpg_home":"/var/www/moneromarket/backup/temp/anonwan/.gnupg","gpg_exit_code":2,"gpg_error":""}}
+{"time":"2026-02-21 08:12:27","ip":"127.0.0.1","msg":"Message decrypt failed","ctx":{"user":"anonwan","gpg_home":"/var/www/moneromarket/backup/temp/anonwan/.gnupg","gpg_exit_code":2,"gpg_error":""}}
+{"time":"2026-02-21 08:12:27","ip":"127.0.0.1","msg":"Message decrypt failed","ctx":{"user":"anonwan","gpg_home":"/var/www/moneromarket/backup/temp/anonwan/.gnupg","gpg_exit_code":2,"gpg_error":""}}
+{"time":"2026-02-21 08:12:32","ip":"127.0.0.1","msg":"Message decrypt failed","ctx":{"user":"anonwan","gpg_home":"/var/www/moneromarket/backup/temp/anonwan/.gnupg","gpg_exit_code":2,"gpg_error":""}}
+{"time":"2026-02-21 08:12:32","ip":"127.0.0.1","msg":"Message decrypt failed","ctx":{"user":"anonwan","gpg_home":"/var/www/moneromarket/backup/temp/anonwan/.gnupg","gpg_exit_code":2,"gpg_error":""}}
+{"time":"2026-02-21 08:12:32","ip":"127.0.0.1","msg":"Message decrypt failed","ctx":{"user":"anonwan","gpg_home":"/var/www/moneromarket/backup/temp/anonwan/.gnupg","gpg_exit_code":2,"gpg_error":""}}
+{"time":"2026-02-21 08:12:32","ip":"127.0.0.1","msg":"Message decrypt failed","ctx":{"user":"anonwan","gpg_home":"/var/www/moneromarket/backup/temp/anonwan/.gnupg","gpg_exit_code":2,"gpg_error":""}}
+{"time":"2026-02-21 08:12:44","ip":"127.0.0.1","msg":"Message decrypt failed","ctx":{"user":"anonwan","gpg_home":"/var/www/moneromarket/backup/temp/anonwan/.gnupg","gpg_exit_code":2,"gpg_error":""}}
+{"time":"2026-02-21 08:12:45","ip":"127.0.0.1","msg":"Message decrypt failed","ctx":{"user":"anonwan","gpg_home":"/var/www/moneromarket/backup/temp/anonwan/.gnupg","gpg_exit_code":2,"gpg_error":""}}
+{"time":"2026-02-21 08:12:45","ip":"127.0.0.1","msg":"Message decrypt failed","ctx":{"user":"anonwan","gpg_home":"/var/www/moneromarket/backup/temp/anonwan/.gnupg","gpg_exit_code":2,"gpg_error":""}}
+{"time":"2026-02-21 08:12:53","ip":"127.0.0.1","msg":"No messages fetched for thread","ctx":{"user_id":2,"thread_id":3,"before_id":null,"is_unlocked":true}}
