@@ -1,6 +1,0 @@
-[22-Feb-2026 05:34:19 UTC] PHP Warning:  Undefined variable $pdo in /var/www/moneromarket/ads/create_submit.php on line 19
-[22-Feb-2026 05:34:19 UTC] [2026-02-22 05:34:19] Uncaught TypeError: create_ad(): Argument #2 ($pdo) must be of type PDO, null given, called in /var/www/moneromarket/ads/create_submit.php on line 19 in /var/www/moneromarket/ads/lib/ad_creator.php:4
-Stack trace:
-#0 /var/www/moneromarket/ads/create_submit.php(19): create_ad()
-#1 {main}
-

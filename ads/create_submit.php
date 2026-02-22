@@ -7,6 +7,7 @@ require_once __DIR__ . '/../includes/auth.php';
 require_login();
 
 require_once __DIR__ . '/../db/database.php';
+$pdo = db_get_pdo();
 require_once __DIR__ . '/lib/ad_validator.php';
 require_once __DIR__ . '/lib/ad_creator.php';
 require_once __DIR__ . '/../includes/flash.php';
