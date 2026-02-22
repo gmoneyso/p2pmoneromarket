@@ -54,7 +54,7 @@ function messages_fetch_moderator_public_keys(PDO $pdo, array $excludeUserIds = 
 {
     $excludeUserIds = array_values(array_unique(array_map('intval', $excludeUserIds)));
 
-    $sql = "\n        SELECT u.pgp_public\n        FROM staff_roles sr\n        JOIN users u ON u.id = sr.user_id\n        WHERE sr.role = 'moderator'\n          AND sr.status = 'active'\n          AND u.backup_completed = 1\n          AND u.pgp_public IS NOT NULL\n          AND u.pgp_public <> ''\n    ";
+    $sql = "\n        SELECT u.pgp_public\n        FROM staff_roles sr\n        JOIN users u ON u.id = sr.user_id\n        WHERE sr.role = 'moderator'\n          AND u.backup_completed = 1\n          AND u.pgp_public IS NOT NULL\n          AND u.pgp_public <> ''\n    ";
 
     if ($excludeUserIds) {
         $sql .= ' AND sr.user_id NOT IN (' . implode(',', array_fill(0, count($excludeUserIds), '?')) . ')';

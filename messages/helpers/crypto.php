@@ -59,7 +59,7 @@ function messages_run_command(string $command, string $stdin = ''): array
 function messages_fingerprint_from_public_key(string $tmpHome, string $publicKey): string
 {
     $cmd = sprintf(
-        'GNUPGHOME=%s gpg --batch --with-colons --import-options show-only --import 2>&1',
+        'GNUPGHOME=%s gpg --batch --with-colons --import-options show-only --import',
         escapeshellarg($tmpHome)
     );
 
@@ -84,7 +84,7 @@ function messages_fingerprint_from_public_key(string $tmpHome, string $publicKey
 function messages_import_public_key(string $tmpHome, string $publicKey): void
 {
     $cmd = sprintf(
-        'GNUPGHOME=%s gpg --batch --yes --import 2>&1',
+        'GNUPGHOME=%s gpg --batch --yes --import',
         escapeshellarg($tmpHome)
     );
 
@@ -116,7 +116,7 @@ function messages_encrypt_for_recipients(array $recipientPublicKeys, string $pla
 
         $recipientArgs = implode(' ', array_map(static fn($fpr) => '-r ' . escapeshellarg((string)$fpr), $fingerprints));
         $cmd = sprintf(
-            'GNUPGHOME=%s gpg --batch --yes --trust-model always --armor --encrypt %s 2>&1',
+            'GNUPGHOME=%s gpg --batch --yes --trust-model always --armor --encrypt %s',
             escapeshellarg($tmpHome),
             $recipientArgs
         );
@@ -157,18 +157,23 @@ function messages_decrypt_for_user(array $user, string $ciphertext, string $pass
 
     try {
         $cmd = sprintf(
-            'GNUPGHOME=%s gpg --batch --yes --pinentry-mode loopback --passphrase-file %s --decrypt 2>&1',
+            'GNUPGHOME=%s gpg --batch --yes --pinentry-mode loopback --passphrase-file %s --decrypt',
             escapeshellarg($gpgHome),
             escapeshellarg($passFile)
         );
 
         $result = messages_run_command($cmd, $ciphertext);
         if ($result['code'] !== 0) {
+            $stderr = trim((string)$result['stderr']);
+            $stdout = trim((string)$result['stdout']);
+
             messages_log_error('Message decrypt failed', [
                 'user' => $username,
                 'gpg_home' => $gpgHome,
                 'gpg_exit_code' => $result['code'],
-                'gpg_error' => trim((string)$result['stderr']),
+                'gpg_stderr' => $stderr,
+                'gpg_stdout' => $stdout,
+                'gpg_error' => $stderr !== '' ? $stderr : $stdout,
             ]);
             return null;
         }
